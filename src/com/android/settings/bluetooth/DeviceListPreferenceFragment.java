@@ -156,6 +156,12 @@ public abstract class DeviceListPreferenceFragment extends
             return;
         }
 
+        //codewalker
+        if (cachedDevice.getBtClass() == null) {
+            Log.e(TAG, "getBtClass is null");
+            return;
+        }
+
         // Prevent updates while the list shows one of the state messages
         if (mLocalAdapter.getBluetoothState() != BluetoothAdapter.STATE_ON) return;
 

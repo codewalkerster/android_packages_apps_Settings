@@ -40,6 +40,7 @@ import android.os.Bundle;
 import android.os.INetworkManagementService;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.os.UserId;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -368,7 +369,12 @@ public class Settings extends PreferenceActivity
      */
     @Override
     public void onBuildHeaders(List<Header> headers) {
-        loadHeadersFromResource(R.xml.settings_headers, headers);
+		if(SystemProperties.get("ro.product.device").equals("odroidx") || 
+			SystemProperties.get("ro.product.device").equals("odroidx2") ||
+			SystemProperties.get("ro.product.device").equals("odroidu"))
+			loadHeadersFromResource(R.xml.settings_headers_ethernet, headers);
+		else
+			loadHeadersFromResource(R.xml.settings_headers, headers);
 
         updateHeaderList(headers);
     }
