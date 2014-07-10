@@ -194,12 +194,13 @@ public class StorageVolumePreferenceCategory extends PreferenceCategory {
         }
 
         final boolean isRemovable = mVolume != null ? mVolume.isRemovable() : false;
-        if (isRemovable) {
+		//codewalker
+        //if (isRemovable) {
             mMountTogglePreference = new Preference(context);
             mMountTogglePreference.setTitle(R.string.sd_eject);
             mMountTogglePreference.setSummary(R.string.sd_eject_summary);
             addPreference(mMountTogglePreference);
-        }
+        //}
 
         // Only allow formatting of primary physical storage
         // TODO: enable for non-primary volumes once MTP is fixed
@@ -310,7 +311,9 @@ public class StorageVolumePreferenceCategory extends PreferenceCategory {
     private static long totalValues(HashMap<String, Long> map, String... keys) {
         long total = 0;
         for (String key : keys) {
-            total += map.get(key);
+			//codewalker
+			if (map.size() > 0)
+            	total += map.get(key);
         }
         return total;
     }

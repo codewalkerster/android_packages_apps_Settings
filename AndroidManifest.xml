@@ -139,6 +139,19 @@
                 android:resource="@id/wifi_settings" />
         </activity>
 
+         <activity android:name="Settings$EthernetSettingsActivity"
+                android:theme="@android:style/Theme.Holo.DialogWhenLarge"
+                android:label="@string/ethernet_settings">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.VOICE_LAUNCH" />
+            </intent-filter>
+            <meta-data android:name="com.android.settings.FRAGMENT_CLASS"
+                android:value="com.android.settings.ethernet.EthernetSettings" />
+            <meta-data android:name="com.android.settings.TOP_LEVEL_HEADER_ID"
+                android:resource="@id/ethernet_settings" />
+        </activity>
         <!-- Keep compatibility with old shortcuts. -->
         <activity-alias android:name=".wifi.WifiSettings"
                 android:taskAffinity="com.android.settings"
@@ -1514,5 +1527,15 @@
             </intent-filter>
         </receiver>
 
+        <activity android:name=".ethernet.EthernetStaticIP"
+			android:label="@string/category_ethernet" 
+			android:theme="@android:style/Theme.Holo.DialogWhenLarge">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<action android:name="android.settings.ETHERNET_STATICIP" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.VOICE_LAUNCH" />
+			</intent-filter>
+		</activity>
     </application>
 </manifest>
