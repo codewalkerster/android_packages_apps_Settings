@@ -166,7 +166,8 @@ public class AppOpsState {
                     AppOpsManager.OP_AUDIO_MEDIA_VOLUME,
                     AppOpsManager.OP_AUDIO_ALARM_VOLUME,
                     AppOpsManager.OP_AUDIO_NOTIFICATION_VOLUME,
-                    AppOpsManager.OP_AUDIO_BLUETOOTH_VOLUME, },
+                    AppOpsManager.OP_AUDIO_BLUETOOTH_VOLUME,
+                    AppOpsManager.OP_BLUETOOTH_CHANGE },
             new boolean[] { false,
                     true,
                     true,
@@ -179,7 +180,8 @@ public class AppOpsState {
                     false,
                     false,
                     false,
-                    false }
+                    false,
+					true }
             );
 
     public static final OpsTemplate DEVICE_TEMPLATE = new OpsTemplate(
@@ -188,12 +190,14 @@ public class AppOpsState {
                     AppOpsManager.OP_CALL_PHONE,
                     AppOpsManager.OP_WRITE_SETTINGS,
                     AppOpsManager.OP_SYSTEM_ALERT_WINDOW,
-                    AppOpsManager.OP_WAKE_LOCK },
+                    AppOpsManager.OP_WAKE_LOCK,
+                    AppOpsManager.OP_BLUETOOTH_CHANGE },
             new boolean[] { false,
                     true,
                     true,
                     true,
                     true,
+					true,
                     true,  }
             );
 
