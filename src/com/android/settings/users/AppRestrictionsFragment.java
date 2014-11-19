@@ -550,6 +550,7 @@ public class AppRestrictionsFragment extends SettingsPreferenceFragment implemen
         final IPackageManager ipm = mIPm;
 
         final HashSet<String> excludePackages = new HashSet<String>();
+        excludePackages.add("com.android.inputmethod.latin");
         addSystemImes(excludePackages);
 
         // Add launchers

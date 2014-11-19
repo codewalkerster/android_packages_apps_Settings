@@ -57,6 +57,7 @@ import android.widget.TextView;
 
 import com.android.settings.ProxySelector;
 import com.android.settings.R;
+import com.android.settings.Utils;
 
 import java.net.InetAddress;
 import java.util.Iterator;
@@ -282,6 +283,25 @@ public class WifiConfigController implements TextWatcher,
         mConfigUi.setCancelButton(context.getString(R.string.wifi_cancel));
         if (mConfigUi.getSubmitButton() != null) {
             enableSubmitIfAppropriate();
+        }
+    }
+
+    private void setSubmitNeighbor(int id) {
+        Button submit = mConfigUi.getSubmitButton();
+        if (submit == null) return;
+
+        mView.findViewById(id).setNextFocusDownId(submit.getId());
+        submit.setNextFocusUpId(id);
+    }
+
+    private void setNeighbor(View up, int upId, View down, int downId) {
+        up.setNextFocusDownId(downId);
+        down.setNextFocusUpId(upId);
+    }
+
+    void setSubmitDefaultNeighbor() {
+        if (Utils.platformHasMbxUiMode()) {
+            setSubmitNeighbor(R.id.wifi_advanced_togglebox);
         }
     }
 
@@ -560,6 +580,12 @@ public class WifiConfigController implements TextWatcher,
         }
         if (mAccessPointSecurity == AccessPoint.SECURITY_NONE) {
             mView.findViewById(R.id.security_fields).setVisibility(View.GONE);
+            if (mAccessPoint == null && Utils.platformHasMbxUiMode()) {
+                setNeighbor(mSsidView, R.id.ssid, mSecuritySpinner, R.id.security);
+                setNeighbor(mSecuritySpinner, R.id.security,
+                    mView.findViewById(R.id.wifi_advanced_togglebox),
+                    R.id.wifi_advanced_togglebox);
+            }
             return;
         }
         mView.findViewById(R.id.security_fields).setVisibility(View.VISIBLE);
@@ -577,6 +603,16 @@ public class WifiConfigController implements TextWatcher,
 
         if (mAccessPointSecurity != AccessPoint.SECURITY_EAP) {
             mView.findViewById(R.id.eap).setVisibility(View.GONE);
+            if (Utils.platformHasMbxUiMode()) {
+                if (mAccessPoint == null) {
+                    setNeighbor(mSsidView, R.id.ssid, mSecuritySpinner, R.id.security);
+                    setNeighbor(mSecuritySpinner, R.id.security, mPasswordView, R.id.password);
+                }
+                setNeighbor(mPasswordView, R.id.password,
+                    mView.findViewById(R.id.show_password), R.id.show_password);
+                setNeighbor(mView.findViewById(R.id.show_password), R.id.show_password,
+                    mView.findViewById(R.id.wifi_advanced_togglebox), R.id.wifi_advanced_togglebox);
+            }
             return;
         }
         mView.findViewById(R.id.eap).setVisibility(View.VISIBLE);
@@ -661,6 +697,17 @@ public class WifiConfigController implements TextWatcher,
         // Common defaults
         mView.findViewById(R.id.l_method).setVisibility(View.VISIBLE);
         mView.findViewById(R.id.l_identity).setVisibility(View.VISIBLE);
+
+        if (Utils.platformHasMbxUiMode()) {
+            if (mAccessPoint == null) {
+                setNeighbor(mSsidView, R.id.ssid, mSecuritySpinner, R.id.security);
+                setNeighbor(mSecuritySpinner, R.id.security, mEapMethodSpinner, R.id.method);
+            }
+            setNeighbor(mPasswordView, R.id.password,
+                mView.findViewById(R.id.show_password), R.id.show_password);
+            setNeighbor(mView.findViewById(R.id.show_password), R.id.show_password,
+                mView.findViewById(R.id.wifi_advanced_togglebox), R.id.wifi_advanced_togglebox);
+        }
 
         // Defaults for most of the EAP methods and over-riden by
         // by certain EAP methods
@@ -780,8 +827,15 @@ public class WifiConfigController implements TextWatcher,
                     mDns2View.setText(dnsIterator.next().getHostAddress());
                 }
             }
+            if (Utils.platformHasMbxUiMode()) {
+                setNeighbor(mIpSettingsSpinner, R.id.ip_settings, mIpAddressView, R.id.ipaddress);
+                setSubmitNeighbor(R.id.dns2);
+            }
         } else {
             mView.findViewById(R.id.staticip).setVisibility(View.GONE);
+            if (Utils.platformHasMbxUiMode()) {
+                setSubmitNeighbor(R.id.ip_settings);
+            }
         }
     }
 
@@ -813,9 +867,25 @@ public class WifiConfigController implements TextWatcher,
                     mProxyExclusionListView.setText(proxyProperties.getExclusionList());
                 }
             }
+            if (Utils.platformHasMbxUiMode()) {
+                setNeighbor(mProxySettingsSpinner, R.id.proxy_settings,
+                    mView.findViewById(R.id.proxy_hostname), R.id.proxy_hostname);
+                setNeighbor(mView.findViewById(R.id.proxy_exclusionlist), R.id.proxy_exclusionlist,
+                    mIpSettingsSpinner, R.id.ip_settings);
+                if (mView.findViewById(R.id.staticip).getVisibility() == View.VISIBLE) {
+                    setSubmitNeighbor(R.id.dns2);
+                } else {
+                    setSubmitNeighbor(R.id.ip_settings);
+                }
+            }
         } else {
             mView.findViewById(R.id.proxy_warning_limited_support).setVisibility(View.GONE);
             mView.findViewById(R.id.proxy_fields).setVisibility(View.GONE);
+            if (Utils.platformHasMbxUiMode()) {
+                setNeighbor(mView.findViewById(R.id.wifi_advanced_togglebox),
+                    R.id.wifi_advanced_togglebox, mProxySettingsSpinner, R.id.proxy_settings);
+                setNeighbor(mProxySettingsSpinner, R.id.proxy_settings, mIpSettingsSpinner, R.id.ip_settings);
+            }
         }
     }
 
@@ -890,8 +960,20 @@ public class WifiConfigController implements TextWatcher,
         } else if (view.getId() == R.id.wifi_advanced_togglebox) {
             if (isChecked) {
                 mView.findViewById(R.id.wifi_advanced_fields).setVisibility(View.VISIBLE);
+                if (Utils.platformHasMbxUiMode()) {
+                    setNeighbor(mView.findViewById(R.id.wifi_advanced_togglebox),
+                        R.id.wifi_advanced_togglebox, mProxySettingsSpinner, R.id.proxy_settings);
+                    if (mView.findViewById(R.id.staticip).getVisibility() == View.VISIBLE) {
+                        setSubmitNeighbor(R.id.dns2);
+                    } else {
+                        setSubmitNeighbor(R.id.ip_settings);
+                    }
+                }
             } else {
                 mView.findViewById(R.id.wifi_advanced_fields).setVisibility(View.GONE);
+                if (Utils.platformHasMbxUiMode()) {
+                    setSubmitNeighbor(R.id.wifi_advanced_togglebox);
+                }
             }
         }
     }

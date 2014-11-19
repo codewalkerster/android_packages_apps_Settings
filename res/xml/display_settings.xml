@@ -19,8 +19,14 @@
         xmlns:settings="http://schemas.android.com/apk/res/com.android.settings">
 
         <com.android.settings.BrightnessPreference
+                android:key="brightness"
                 android:title="@string/brightness"
                 android:persistent="false"/>
+
+        <com.android.settings.AutoBrightnessSwitch 
+                android:key="auto_brightness"
+                android:title="@string/auto_brightness"
+                android:summary="@string/auto_brightness_summary"/>
 
         <PreferenceScreen
                 android:key="wallpaper"
@@ -43,7 +49,7 @@
                 android:key="screensaver"
                 android:title="@string/screensaver_settings_title"
                 android:fragment="com.android.settings.DreamSettings" />
-
+		        
         <com.android.settings.WarnedListPreference
                 android:key="font_size"
                 android:title="@string/title_font_size"
@@ -52,6 +58,13 @@
                 android:entryValues="@array/entryvalues_font_size"
                 android:dialogTitle="@string/dialog_title_font_size" />
 
+		<ListPreference
+		        android:key="default_frequency"
+		        android:title="@string/tv_default_frequency"
+		        android:summary="@string/tv_default_frequency_summary"
+		        android:persistent="false"
+		        android:entries="@array/default_frequency_entries"
+		        android:entryValues="@array/default_frequency_values" />
         <CheckBoxPreference
             android:key="notification_pulse"
             android:title="@string/notification_pulse_title"
@@ -61,5 +74,10 @@
                 android:key="wifi_display"
                 android:title="@string/wifi_display_settings_title"
                 android:fragment="com.android.settings.wfd.WifiDisplaySettings" />
+
+        <com.android.settings.CustomGsensorSwitch 
+                android:key="gsensor_config"
+                android:title="@string/custom_gsensor"
+                android:summary="@string/custom_gsensor_summary"/>        
 
 </PreferenceScreen>

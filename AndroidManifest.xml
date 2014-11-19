@@ -65,6 +65,7 @@
     <uses-permission android:name="android.permission.CONFIGURE_WIFI_DISPLAY" />
     <uses-permission android:name="android.permission.SET_TIME" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.REBOOT" />
     <uses-permission android:name="android.permission.MANAGE_DEVICE_ADMINS" />
 
@@ -75,6 +76,13 @@
             android:hardwareAccelerated="true"
             android:requiredForAllUsers="true"
             android:supportsRtl="true">
+
+		<activity android:name=".OutputSetConfirm" android:theme="@android:style/Theme.NoTitleBar">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+		</activity>
 
         <!-- Settings -->
 
@@ -103,6 +111,22 @@
             </intent-filter>
         </activity>
 
+         <!-- Ethernet controls -->
+
+        <activity android:name="Settings$EthernetSettingsActivityAML"
+                android:label="@string/eth_setting">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.settings.ETHERNET_SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.VOICE_LAUNCH" />
+                <category android:name="com.android.settings.SHORTCUT" />
+            </intent-filter>
+            <meta-data android:name="com.android.settings.FRAGMENT_CLASS"
+                android:value="com.android.settings.ethernet.EthernetSettingsAML" />
+            <meta-data android:name="com.android.settings.TOP_LEVEL_HEADER_ID"
+                android:resource="@id/ethernet_settings" />
+        </activity>
         <!-- Wireless Controls -->
 
         <activity android:name="Settings$WirelessSettingsActivity"
@@ -619,6 +643,40 @@
                 android:value="com.android.settings.DisplaySettings" />
             <meta-data android:name="com.android.settings.TOP_LEVEL_HEADER_ID"
                 android:resource="@id/display_settings" />
+        </activity-alias>
+
+        <activity android:name="Settings$DockSettingsActivity"
+                android:label="@string/dock_settings_title"
+                android:enabled="@bool/has_dock_settings"
+                android:clearTaskOnLaunch="true"
+                android:parentActivityName="Settings">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="com.android.settings.DOCK_SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.VOICE_LAUNCH" />
+            </intent-filter>
+            <meta-data android:name="com.android.settings.FRAGMENT_CLASS"
+                android:value="com.android.settings.DockSettings" />
+	    <!-- Temporaily skip by LiuWei
+            <meta-data android:name="com.android.settings.TOP_LEVEL_HEADER_ID"
+                android:resource="@id/dock_settings" />
+	    -->
+        </activity>
+
+        <!-- Keep compatibility with old shortcuts. -->
+        <activity-alias android:name="DockSettings"
+                android:label="@string/dock_settings_title"
+                android:enabled="@bool/has_dock_settings"
+                android:clearTaskOnLaunch="true"
+                android:exported="true"
+                android:targetActivity="Settings$DockSettingsActivity">
+            <meta-data android:name="com.android.settings.FRAGMENT_CLASS"
+                android:value="com.android.settings.DockSettings" />
+	    <!-- Temporarily skip by LiuWei
+            <meta-data android:name="com.android.settings.TOP_LEVEL_HEADER_ID"
+                android:resource="@id/dock_settings" />
+	    -->
         </activity-alias>
 
         <activity android:name="Settings$DeviceInfoSettingsActivity"
@@ -1328,6 +1386,22 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".bluetooth.BluetoothAuthorizeDialog"
+                android:label="bluetooth_authorize_dialog"
+                android:theme="@*android:style/Theme.Holo.Dialog.Alert"
+                android:excludeFromRecents="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACTION_AUTHORIZE_REQUEST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <receiver android:name=".bluetooth.BluetoothAuthorizeRequest">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACTION_AUTHORIZE_REQUEST" />
+            </intent-filter>
+        </receiver>
+
         <!-- NFC settings -->
         <activity android:name="Settings$AndroidBeamSettingsActivity"
                 android:label="@string/android_beam_settings_title"
@@ -1357,13 +1431,6 @@
 
 
         <!-- Development settings -->
-
-        <activity android:name="DebugIntentSender" android:label="@string/debug_intent_sender_label">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEVELOPMENT_PREFERENCE" />
-            </intent-filter>
-        </activity>
 
         <!-- DeviceInfo adds the user's requested build to stats upload.  -->
         <receiver android:name=".DeviceInfo$StatsReportReceiver">
@@ -1602,6 +1669,18 @@
             <meta-data android:name="com.android.settings.TOP_LEVEL_HEADER_ID"
                 android:resource="@id/wireless_settings" />
         </activity>
+		<activity android:name=".OutputSetConfirm" android:theme="@android:style/Theme.NoTitleBar">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+		</activity>
+       <activity android:name=".DisplayPositionSetConfirm" android:theme="@android:style/Theme.NoTitleBar">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+			</intent-filter>
+		</activity>
 
         <activity android:name="Settings$DreamSettingsActivity"
                 android:uiOptions="splitActionBarWhenNarrow"
@@ -1726,6 +1805,14 @@
                 <action android:name="android.provider.Contacts.PROFILE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <receiver android:name="com.android.settings.AutoBrightnessReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <service android:name="com.android.settings.AutoBrightnessService">
+        </service>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

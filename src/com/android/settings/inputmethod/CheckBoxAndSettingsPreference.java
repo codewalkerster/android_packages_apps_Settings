@@ -28,6 +28,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.view.KeyEvent;
+import android.util.Log;
 
 public class CheckBoxAndSettingsPreference extends CheckBoxPreference {
 
@@ -36,6 +38,7 @@ public class CheckBoxAndSettingsPreference extends CheckBoxPreference {
     private TextView mSummaryText;
     private ImageView mSettingsButton;
     private Intent mSettingsIntent;
+	private boolean isSettingFocus = false;
 
     public CheckBoxAndSettingsPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -66,6 +69,55 @@ public class CheckBoxAndSettingsPreference extends CheckBoxPreference {
                     }
                 });
         enableSettingsButton();
+    }
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        
+		if(event.getAction() == KeyEvent.ACTION_DOWN)
+			{
+			switch (keyCode) 
+				{
+		            case KeyEvent.KEYCODE_DPAD_RIGHT:
+						if((!isSettingFocus)&& isChecked())
+							{
+							isSettingFocus = true;
+							mSettingsButton.setImageResource(R.drawable.ic_sysbar_quicksettings_h);
+							return true;
+							}
+						return false;
+					case KeyEvent.KEYCODE_DPAD_LEFT:
+						if(isSettingFocus)
+							{
+							isSettingFocus = false;
+							mSettingsButton.setImageResource(R.drawable.ic_sysbar_quicksettings);
+							return true;
+							}
+						return false;
+					case KeyEvent.KEYCODE_DPAD_CENTER:
+						if(isSettingFocus)
+							{
+							onSettingsButtonClicked();
+							}
+						else
+							{
+							onCheckBoxClicked();
+							}
+						return true;	
+					case KeyEvent.KEYCODE_DPAD_UP:
+					case KeyEvent.KEYCODE_DPAD_DOWN:
+						if(isSettingFocus)
+							{
+							isSettingFocus = false;
+							mSettingsButton.setImageResource(R.drawable.ic_sysbar_quicksettings);
+							}
+						return false;
+		            default:
+		                return false;
+        		}
+			
+			}
+		return false;
+
     }
 
     @Override

@@ -318,7 +318,9 @@ public class TetherSettings extends SettingsPreferenceFragment
     private void updateState(String[] available, String[] tethered,
             String[] errored) {
         updateUsbState(available, tethered, errored);
-        updateBluetoothState(available, tethered, errored);
+		if(Utils.hwHasBluetooth()){
+        	updateBluetoothState(available, tethered, errored);
+		}
     }
 
 

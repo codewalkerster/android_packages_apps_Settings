@@ -21,6 +21,7 @@ import static android.os.BatteryManager.BATTERY_STATUS_UNKNOWN;
 import com.android.internal.telephony.TelephonyIntents;
 
 import android.app.Dialog;
+import android.app.SystemWriteManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -57,7 +58,7 @@ public class RingerVolumePreference extends VolumePreference {
     private static final int MSG_RINGER_MODE_CHANGED = 101;
 
     private SeekBarVolumizer [] mSeekBarVolumizer;
-
+    private Context mContext;
     // These arrays must all match in length and order
     private static final int[] SEEKBAR_ID = new int[] {
         R.id.media_volume_seekbar,
@@ -117,6 +118,7 @@ public class RingerVolumePreference extends VolumePreference {
     }
 
     private void updateSlidersAndMutedStates() {
+        SystemWriteManager sw = (SystemWriteManager) mContext.getSystemService("system_write");
         for (int i = 0; i < SEEKBAR_TYPE.length; i++) {
             int streamType = SEEKBAR_TYPE[i];
             boolean muted = mAudioManager.isStreamMute(streamType);
@@ -136,7 +138,10 @@ public class RingerVolumePreference extends VolumePreference {
                 final int volume = mAudioManager.getStreamVolume(streamType);
                 mSeekBars[i].setProgress(volume);
                 if (streamType != mAudioManager.getMasterStreamType() && muted) {
-                    mSeekBars[i].setEnabled(false);
+                    if(sw.getPropertyBoolean("ro.platform.has.mbxuimode", false) && streamType == AudioManager.STREAM_NOTIFICATION)
+                        mSeekBars[i].setEnabled(true);
+                    else
+                        mSeekBars[i].setEnabled(false);
                 } else {
                     mSeekBars[i].setEnabled(true);
                 }
@@ -152,7 +157,7 @@ public class RingerVolumePreference extends VolumePreference {
 
     public RingerVolumePreference(Context context, AttributeSet attrs) {
         super(context, attrs);
-
+        mContext = context;
         // The always visible seekbar is for ring volume
         setStreamType(AudioManager.STREAM_RING);
 

@@ -16,6 +16,20 @@
 
 package com.android.settings;
 
+import com.android.internal.util.ArrayUtils;
+import com.android.settings.ChooseLockGeneric.ChooseLockGenericFragment;
+import com.android.settings.accounts.AccountSyncSettings;
+import com.android.settings.accounts.AuthenticatorHelper;
+import com.android.settings.accounts.ManageAccountsSettings;
+import com.android.settings.applications.InstalledAppDetails;
+import com.android.settings.applications.ManageApplications;
+import com.android.settings.bluetooth.BluetoothEnabler;
+import com.android.settings.ethernet.EthernetEnabler;
+import com.android.settings.deviceinfo.Memory;
+import com.android.settings.fuelgauge.PowerUsageSummary;
+import com.android.settings.vpn2.VpnSettings;
+import com.android.settings.wifi.WifiEnabler;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.OnAccountsUpdateListener;
@@ -33,6 +47,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.ethernet.EthernetManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.nfc.NfcAdapter;
@@ -42,6 +57,7 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.os.SystemProperties;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
@@ -272,7 +288,9 @@ public class Settings extends PreferenceActivity
         if (listAdapter instanceof HeaderAdapter) {
             ((HeaderAdapter) listAdapter).resume();
         }
-        invalidateHeaders();
+        //if(!Utils.platformHasMbxUiMode()){
+            invalidateHeaders();
+        //}
 
         registerReceiver(mBatteryInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
     }
@@ -553,7 +571,16 @@ public class Settings extends PreferenceActivity
                 if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
                     target.remove(i);
                 }
-            } else if (id == R.id.data_usage_settings) {
+            } else if(id == R.id.battery_settings){
+				// Remove Battery Settings if Battery service is not available.
+                if (Utils.hwNoBattery()) {
+                    target.remove(header);
+                }
+			} else if (id == R.id.ethernet_settings) {
+                if (!Utils.hwHasEthernet()) {
+                    target.remove(header);
+                }
+			} else if (id == R.id.data_usage_settings) {
                 // Remove data usage when kernel module not enabled
                 final INetworkManagementService netManager = INetworkManagementService.Stub
                         .asInterface(ServiceManager.getService(Context.NETWORKMANAGEMENT_SERVICE));
@@ -580,7 +607,7 @@ public class Settings extends PreferenceActivity
             } else if (id == R.id.user_settings) {
                 if (!UserHandle.MU_ENABLED
                         || !UserManager.supportsMultipleUsers()
-                        || Utils.isMonkeyRunning()) {
+                        || Utils.isMonkeyRunning() || Utils.platformHasMbxUiMode()) {
                     target.remove(i);
                 }
             } else if (id == R.id.nfc_payment_settings) {
@@ -602,6 +629,23 @@ public class Settings extends PreferenceActivity
                 if (um.hasUserRestriction(UserManager.DISALLOW_MODIFY_ACCOUNTS)) {
                     target.remove(i);
                 }
+            }else if(id == R.id.appops_settings){
+                String opsEnble = SystemProperties.get("ro.permissions.settings", "false");
+                if(opsEnble.equals("false")){
+                    target.remove(i);
+                }
+            }else if(id == R.id.sound_settings){
+            	if(Utils.hwNoSoundPartition()){
+            		target.remove(i);
+            	}
+            }else if(id == R.id.location_settings){
+            	if(Utils.hwNoLocation()){
+            		target.remove(i);
+            	}
+            }else if(id == R.id.print_settings){
+            	if(Utils.platformHasTvUiMode()){
+            		target.remove(i);
+            	}
             }
 
             if (i < target.size() && target.get(i) == header
@@ -780,6 +824,7 @@ public class Settings extends PreferenceActivity
 
         private final WifiEnabler mWifiEnabler;
         private final BluetoothEnabler mBluetoothEnabler;
+        private final EthernetEnabler mEthernetEnabler;
         private AuthenticatorHelper mAuthHelper;
         private DevicePolicyManager mDevicePolicyManager;
 
@@ -797,7 +842,7 @@ public class Settings extends PreferenceActivity
         static int getHeaderType(Header header) {
             if (header.fragment == null && header.intent == null) {
                 return HEADER_TYPE_CATEGORY;
-            } else if (header.id == R.id.wifi_settings || header.id == R.id.bluetooth_settings) {
+            } else if ((header.id == R.id.wifi_settings || header.id == R.id.bluetooth_settings || header.id == R.id.ethernet_settings) && !Utils.platformHasMbxUiMode()){
                 return HEADER_TYPE_SWITCH;
             } else if (header.id == R.id.security_settings) {
                 return HEADER_TYPE_BUTTON;
@@ -843,6 +888,14 @@ public class Settings extends PreferenceActivity
             // Switches inflated from their layouts. Must be done before adapter is set in super
             mWifiEnabler = new WifiEnabler(context, new Switch(context));
             mBluetoothEnabler = new BluetoothEnabler(context, new Switch(context));
+
+            if (Utils.hwHasEthernet()) {
+                mEthernetEnabler = new EthernetEnabler(
+                        (EthernetManager)context.getSystemService(Context.ETH_SERVICE),
+                        new Switch(context));
+            } else
+                mEthernetEnabler = null;
+
             mDevicePolicyManager = dpm;
         }
 
@@ -912,8 +965,11 @@ public class Settings extends PreferenceActivity
                     // Would need a different treatment if the main menu had more switches
                     if (header.id == R.id.wifi_settings) {
                         mWifiEnabler.setSwitch(holder.switch_);
-                    } else {
+                    } else if (header.id == R.id.bluetooth_settings) {
                         mBluetoothEnabler.setSwitch(holder.switch_);
+                    } else if (header.id == R.id.ethernet_settings) {
+                        if (Utils.hwHasEthernet())
+                            mEthernetEnabler.setSwitch(holder.switch_);
                     }
                     updateCommonHeaderView(header, holder);
                     break;
@@ -987,11 +1043,15 @@ public class Settings extends PreferenceActivity
         public void resume() {
             mWifiEnabler.resume();
             mBluetoothEnabler.resume();
+            if (Utils.hwHasEthernet())
+                mEthernetEnabler.resume();
         }
 
         public void pause() {
             mWifiEnabler.pause();
             mBluetoothEnabler.pause();
+            if (Utils.hwHasEthernet())
+                mEthernetEnabler.pause();
         }
     }
 
@@ -1063,6 +1123,7 @@ public class Settings extends PreferenceActivity
      */
     public static class BluetoothSettingsActivity extends Settings { /* empty */ }
     public static class WirelessSettingsActivity extends Settings { /* empty */ }
+    public static class EthernetSettingsActivityAML extends Settings { /* empty */ }
     public static class TetherSettingsActivity extends Settings { /* empty */ }
     public static class VpnSettingsActivity extends Settings { /* empty */ }
     public static class DateTimeSettingsActivity extends Settings { /* empty */ }

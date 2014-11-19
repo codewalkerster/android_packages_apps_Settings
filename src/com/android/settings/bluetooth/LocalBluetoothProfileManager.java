@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
+import android.bluetooth.BluetoothAdapter;
 
 /**
  * LocalBluetoothProfileManager provides access to the LocalBluetoothProfile
@@ -130,6 +131,12 @@ final class LocalBluetoothProfileManager {
        //Create PBAP server profile, but do not add it to list of profiles
        // as we do not need to monitor the profile as part of profile list
         mPbapProfile = new PbapServerProfile(context);
+
+		BluetoothAdapter bt = BluetoothAdapter.getDefaultAdapter();
+		if(bt!= null) {
+			Log.d(TAG, "enable Radio for GPS!!!");
+			//bt.enableRadio();
+		}
 
         if (DEBUG) Log.d(TAG, "LocalBluetoothProfileManager construction complete");
     }

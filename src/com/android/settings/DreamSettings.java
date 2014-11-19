@@ -16,6 +16,9 @@
 
 package com.android.settings;
 
+import static android.provider.Settings.Secure.SCREENSAVER_ENABLED;
+import static android.provider.Settings.Secure.SCREENSAVER_ACTIVATE_ON_DOCK;
+
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -26,7 +29,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.RemoteException;
+import android.os.ServiceManager;
+import android.preference.CheckBoxPreference;
+import android.preference.ListPreference;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceScreen;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -114,6 +125,11 @@ public class DreamSettings extends SettingsPreferenceFragment {
     public void onDestroyView() {
         getActivity().getActionBar().setCustomView(null);
         super.onDestroyView();
+    }
+	
+	public static boolean isScreenSaverEnabled(Context context) {
+        return 0 != Settings.Secure.getInt(
+                    context.getContentResolver(), SCREENSAVER_ENABLED, 1);
     }
 
     @Override

@@ -40,6 +40,7 @@ import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.util.Log;
 import android.view.View;
+import android.view.KeyEvent;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.RadioButton;
@@ -281,6 +282,18 @@ public class HomeSettings extends SettingsPreferenceFragment {
             View v = view.findViewById(R.id.home_app_pref);
             v.setOnClickListener(mHomeClickListener);
             v.setTag(indexObj);
+        }
+
+        @Override
+        public boolean onKey(View v, int keyCode, KeyEvent event) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN){
+                if(keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {
+                    mHomeClickListener.onClick(v.findViewById(R.id.home_app_pref));
+                } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && !isSystem){
+                    mDeleteClickListener.onClick(v.findViewById(R.id.home_app_uninstall));
+                }
+            }
+            return super.onKey(v, keyCode, event);
         }
 
         void setChecked(boolean state) {

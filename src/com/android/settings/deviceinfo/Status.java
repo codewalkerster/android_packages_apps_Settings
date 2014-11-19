@@ -216,8 +216,24 @@ public class Status extends PreferenceActivity {
         mTelephonyManager = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 
         addPreferencesFromResource(R.xml.device_info_status);
-        mBatteryLevel = findPreference(KEY_BATTERY_LEVEL);
-        mBatteryStatus = findPreference(KEY_BATTERY_STATUS);
+
+        if (Utils.platformHasMbxUiMode()){
+                removePreferenceFromScreen(KEY_BATTERY_LEVEL);
+                removePreferenceFromScreen(KEY_BATTERY_STATUS);
+                removePreferenceFromScreen(KEY_NETWORK_TYPE);
+                removePreferenceFromScreen(KEY_SERVICE_STATE);
+                removePreferenceFromScreen(KEY_ROAMING_STATE);
+                removePreferenceFromScreen(KEY_PHONE_NUMBER);
+                removePreferenceFromScreen(KEY_IMEI_SV);
+                removePreferenceFromScreen(KEY_IMEI);
+                removePreferenceFromScreen(KEY_OPERATOR_NAME);
+                removePreferenceFromScreen(KEY_DATA_STATE);
+                removePreferenceFromScreen(KEY_SERIAL_NUMBER);
+        }
+        else{
+        	mBatteryLevel = findPreference(KEY_BATTERY_LEVEL);
+        	mBatteryStatus = findPreference(KEY_BATTERY_STATUS);
+	}
 
         mRes = getResources();
         sUnknown = mRes.getString(R.string.device_info_default);
@@ -226,7 +242,18 @@ public class Status extends PreferenceActivity {
         }
         // Note - missing in zaku build, be careful later...
         mSignalStrength = findPreference(KEY_SIGNAL_STRENGTH);
+        if(Utils.platformHasMbxUiMode())
+        {
+            removePreferenceFromScreen(KEY_SIGNAL_STRENGTH);
+            mSignalStrength = null;
+        }
+        
+        
         mUptime = findPreference("up_time");
+        if(Utils.platformHasMbxUiMode())
+        {
+            removePreferenceFromScreen("up_time");
+        }
 
         if (mPhone == null || Utils.isWifiOnly(getApplicationContext())) {
             for (String key : PHONE_RELATED_ENTRIES) {
@@ -242,8 +269,11 @@ public class Status extends PreferenceActivity {
                     findPreference(KEY_MIN_NUMBER).setTitle(R.string.status_msid_number);
                 }
                 setSummaryText(KEY_PRL_VERSION, mPhone.getCdmaPrlVersion());
+                if(!Utils.platformHasMbxUiMode())
+                {
                 removePreferenceFromScreen(KEY_IMEI_SV);
-
+                }
+                
                 if (mPhone.getLteOnCdmaMode() == PhoneConstants.LTE_ON_CDMA_TRUE) {
                     // Show ICC ID and IMEI for LTE device
                     setSummaryText(KEY_ICC_ID, mPhone.getIccSerialNumber());
@@ -257,10 +287,13 @@ public class Status extends PreferenceActivity {
             } else {
                 setSummaryText(KEY_IMEI, mPhone.getDeviceId());
 
+                if(Utils.platformHasMbxUiMode())
+                {
                 setSummaryText(KEY_IMEI_SV,
                         ((TelephonyManager) getSystemService(TELEPHONY_SERVICE))
                             .getDeviceSoftwareVersion());
-
+                }
+                
                 // device is not CDMA, do not display CDMA features
                 // check Null in case no specified preference in overlay xml
                 removePreferenceFromScreen(KEY_PRL_VERSION);
@@ -279,8 +312,12 @@ public class Status extends PreferenceActivity {
             if (!TextUtils.isEmpty(rawNumber)) {
                 formattedNumber = PhoneNumberUtils.formatNumber(rawNumber);
             }
+            
+            if(!Utils.platformHasMbxUiMode())
+            {
             // If formattedNumber is null or empty, it'll display as "Unknown".
             setSummaryText(KEY_PHONE_NUMBER, formattedNumber);
+            }
 
             mPhoneStateReceiver = new PhoneStateIntentReceiver(this, mHandler);
             mPhoneStateReceiver.notifySignalStrength(EVENT_SIGNAL_STRENGTH_CHANGED);
@@ -325,8 +362,10 @@ public class Status extends PreferenceActivity {
                         CB_AREA_INFO_SENDER_PERMISSION);
             }
         }
+	if (!Utils.platformHasMbxUiMode()){
         registerReceiver(mBatteryInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         mHandler.sendEmptyMessage(EVENT_UPDATE_STATS);
+	}
     }
 
     @Override
@@ -337,10 +376,12 @@ public class Status extends PreferenceActivity {
             mPhoneStateReceiver.unregisterIntent();
             mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
         }
+	if (!Utils.platformHasMbxUiMode()){
         if (mShowLatestAreaInfo) {
             unregisterReceiver(mAreaInfoReceiver);
         }
         unregisterReceiver(mBatteryInfoReceiver);
+	}
         mHandler.removeMessages(EVENT_UPDATE_STATS);
     }
 
@@ -380,12 +421,14 @@ public class Status extends PreferenceActivity {
     }
 
     private void updateNetworkType() {
-        // Whether EDGE, UMTS, etc...
-        String networktype = null;
-        if (TelephonyManager.NETWORK_TYPE_UNKNOWN != mTelephonyManager.getNetworkType()) {
-            networktype = mTelephonyManager.getNetworkTypeName();
+        if(!Utils.platformHasMbxUiMode()){
+            // Whether EDGE, UMTS, etc...
+            String networktype = null;
+            if (TelephonyManager.NETWORK_TYPE_UNKNOWN != mTelephonyManager.getNetworkType()) {
+                networktype = mTelephonyManager.getNetworkTypeName();
+            }
+            setSummaryText(KEY_NETWORK_TYPE, networktype);
         }
-        setSummaryText(KEY_NETWORK_TYPE, networktype);
     }
 
     private void updateDataState() {
@@ -427,12 +470,21 @@ public class Status extends PreferenceActivity {
                 break;
         }
 
-        setSummaryText(KEY_SERVICE_STATE, display);
-
+        if(!Utils.platformHasMbxUiMode())
+        {
+            setSummaryText(KEY_SERVICE_STATE, display);
+        }
+        
         if (serviceState.getRoaming()) {
-            setSummaryText(KEY_ROAMING_STATE, mRes.getString(R.string.radioInfo_roaming_in));
+            if(!Utils.platformHasMbxUiMode())
+            {
+                setSummaryText(KEY_ROAMING_STATE, mRes.getString(R.string.radioInfo_roaming_in));
+            }
         } else {
-            setSummaryText(KEY_ROAMING_STATE, mRes.getString(R.string.radioInfo_roaming_not));
+            if(!Utils.platformHasMbxUiMode())
+            {
+                setSummaryText(KEY_ROAMING_STATE, mRes.getString(R.string.radioInfo_roaming_not));
+            }
         }
         setSummaryText(KEY_OPERATOR_NAME, serviceState.getOperatorAlphaLong());
     }

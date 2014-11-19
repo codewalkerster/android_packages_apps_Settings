@@ -47,6 +47,9 @@ import android.widget.Toast;
 
 import java.text.Collator;
 import java.util.List;
+import android.view.KeyEvent;
+import android.util.Log;
+import android.view.View.OnFocusChangeListener;
 
 public class InputMethodPreference extends CheckBoxPreference {
     private static final String TAG = InputMethodPreference.class.getSimpleName();
@@ -63,6 +66,7 @@ public class InputMethodPreference extends CheckBoxPreference {
     private TextView mTitleText;
     private TextView mSummaryText;
     private View mInputMethodPref;
+	private boolean isSettingFocus = false;
     private OnPreferenceChangeListener mOnImePreferenceChangeListener;
 
     private final OnClickListener mPrefOnclickListener = new OnClickListener() {
@@ -159,6 +163,75 @@ public class InputMethodPreference extends CheckBoxPreference {
             mInputMethodSettingsButton.setVisibility(View.GONE);
         }
         updatePreferenceViews();
+    }
+	@Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        
+		if(event.getAction() == KeyEvent.ACTION_DOWN)
+			{
+			switch (keyCode) 
+				{
+		            case KeyEvent.KEYCODE_DPAD_RIGHT:
+						if((!isSettingFocus)&& isChecked())
+							{
+							isSettingFocus = true;
+							mInputMethodSettingsButton.setImageResource(R.drawable.ic_sysbar_quicksettings_h);
+							return true;
+							}
+						return false;
+					case KeyEvent.KEYCODE_DPAD_LEFT:
+						if(isSettingFocus)
+							{
+							isSettingFocus = false;
+							mInputMethodSettingsButton.setImageResource(R.drawable.ic_sysbar_quicksettings);
+							return true;
+							}
+						return false;
+					case KeyEvent.KEYCODE_DPAD_CENTER:
+						if(isSettingFocus)
+							{
+							try 
+								{
+                                mFragment.startActivity(mSettingsIntent);
+                            	} 
+							catch (ActivityNotFoundException e) 
+								{
+                                Log.d(TAG, "IME's Settings Activity Not Found: " + e);
+                                // If the IME's settings activity does not exist, we can just
+                                // do nothing...
+                            	}
+							}
+						else
+							{
+					            if (!isEnabled()) {
+					                return false;
+					            }
+					            if (isChecked()) {
+					                setChecked(false);
+					            } else {
+					                if (mIsSystemIme) {
+					                    setChecked(true);
+					                } else {
+					                    showSecurityWarnDialog(mImi, InputMethodPreference.this);
+					                }
+					            }
+					        }
+						return true;
+					case KeyEvent.KEYCODE_DPAD_UP:
+					case KeyEvent.KEYCODE_DPAD_DOWN:
+						if(isSettingFocus)
+							{
+							isSettingFocus = false;
+							mInputMethodSettingsButton.setImageResource(R.drawable.ic_sysbar_quicksettings);
+							}
+						return false;
+		            default:
+		                return false;
+        		}
+			
+			}
+		return false;
+
     }
 
     @Override

@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.SystemWriteManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,6 +41,7 @@ import android.net.LinkProperties;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.os.SystemProperties;
 import android.os.ParcelFileDescriptor;
 import android.os.UserHandle;
 import android.os.UserManager;
@@ -316,15 +318,22 @@ public class Utils {
      * Returns whether the device is voice-capable (meaning, it is also a phone).
      */
     public static boolean isVoiceCapable(Context context) {
+        SystemWriteManager sw = (SystemWriteManager) context.getSystemService("system_write");
         TelephonyManager telephony =
                 (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        return telephony != null && telephony.isVoiceCapable();
+        if(!sw.getPropertyBoolean("ro.platform.has.mbxuimode", false))
+            return telephony != null && telephony.isVoiceCapable();
+        else
+            return false;
     }
 
     public static boolean isWifiOnly(Context context) {
+        return SystemProperties.getBoolean("hw.nophone", true);
+            /*
         ConnectivityManager cm = (ConnectivityManager)context.getSystemService(
                 Context.CONNECTIVITY_SERVICE);
         return (cm.isNetworkSupported(ConnectivityManager.TYPE_MOBILE) == false);
+        */
     }
 
     /**
@@ -339,6 +348,12 @@ public class Utils {
         return formatIpAddresses(prop);
     }
 
+    public static String getEtherProperties(Context context) {
+        ConnectivityManager cm = (ConnectivityManager)
+                context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        LinkProperties prop = cm.getLinkProperties(ConnectivityManager.TYPE_ETHERNET);
+        return prop.toString();
+    }
     /**
      * Returns the default link's IP addresses, if any, taking into account IPv4 and IPv6 style
      * addresses.
@@ -486,6 +501,109 @@ public class Utils {
             return R.string.tether_settings_title_bluetooth;
         }
     }
+    public static boolean hwNoPhone() {
+        return SystemProperties.getBoolean("hw.nophone", true);
+    }
+
+    public static boolean hwNoBattery() {
+        return SystemProperties.getBoolean("hw.nobattery", false);
+    }
+
+    public static boolean hwNoSoundPartition() {
+        return SystemProperties.getBoolean("hw.nosoundpartition", false);
+    }
+
+	public static boolean hwNoSoundCategoryFeedback() {
+		return SystemProperties.getBoolean("hw.nosoundcategoryfeedback", false);
+    }
+
+    public static boolean platformHasScreenBrightness() {
+        return SystemProperties.getBoolean("ro.screen.has.brightness", true);
+    }
+
+	public static boolean hwHasBluetooth() {
+		return SystemProperties.getBoolean("hw.has.bluetooth", true);	
+	}
+	
+    public static boolean platformHasScreenTimeout() {
+        return SystemProperties.getBoolean("ro.screen.has.timeout", true);
+    }
+
+    public static boolean platformHasScreenFontSize() {
+        return SystemProperties.getBoolean("ro.screen.has.fontsize", true);
+    }
+	
+    public static boolean platformHasSecurity() {
+        return SystemProperties.getBoolean("ro.platform.has.security", true);
+    }
+
+    public static boolean platformHasEncrypt() {
+        return SystemProperties.getBoolean("ro.platform.has.encrypt", false);
+    }
+
+    public static boolean platformHasMbxUiMode() {
+        return SystemProperties.getBoolean("ro.platform.has.mbxuimode", false);
+    }
+
+    public static boolean platformHasHdmiDualDisp() {
+        return SystemProperties.getBoolean("ro.vout.dualdisplay2", false) || SystemProperties.getBoolean("ro.vout.dualdisplay3", false);
+    }
+    public static boolean platformHasHdmiAutoSwitch() {
+        return SystemProperties.getBoolean("ro.hdmi.autoswitch", true);
+    }     
+    public static boolean platformHasHdmiSpdif() {
+        return SystemProperties.getBoolean("ro.hdmi.spdif", false);
+    }    
+    public static boolean platformHasHdmiSettings() {
+        return !platformHasMbxUiMode() && (platformHasHdmiDualDisp() || platformHasHdmiSpdif() || platformHasHdmiAutoSwitch());
+    } 
+    
+    public static boolean hwHasEthernet() {
+        return SystemProperties.getBoolean("hw.hasethernet", false);
+    }
+
+	public static boolean hwNoDataUsage() {
+		return SystemProperties.getBoolean("hw.nodatausage", false);
+	}
+
+	public static boolean hwNoSyncSetting() {
+		return SystemProperties.getBoolean("hw.nosyncsetting", false);
+	}
+	
+	public static boolean hwNoLocation() {
+		return SystemProperties.getBoolean("hw.nolocation", false);
+	}
+	
+	public static boolean hwNoAccessibility() {
+		return SystemProperties.getBoolean("hw.noaccessibility", false);
+	}
+	
+	public static boolean hwNoAboutDevice() {
+		return SystemProperties.getBoolean("hw.noaboutdevice", false);
+	}
+	public static boolean platformHasTvUiMode() {
+		return SystemProperties.getBoolean("ro.platform.has.tvuimode", false);
+	}
+	
+	public static int platformHas1080Scale() {
+		return SystemProperties.getInt("ro.platform.has.1080scale", 0);
+	}
+	
+	public static boolean platformHasCpuMode() {
+		return SystemProperties.getBoolean("ro.has.cpu.setting", false);
+	}	 
+
+	public static boolean platformHasDefaultTVFreq() {
+        return SystemProperties.getBoolean("ro.platform.has.defaulttvfreq", false);
+    }    
+    public static boolean platformHasHdmiCECSwitch() {
+        return SystemProperties.getBoolean("ro.platform.has.hdmicec", false);
+    }    
+    
+    public static boolean platformHasDRC()
+    {
+            return SystemProperties.getBoolean("ro.platform.has.drc", false);
+    }
 
     /* Used by UserSettings as well. Call this on a non-ui thread. */
     public static boolean copyMeProfilePhoto(Context context, UserInfo user) {
@@ -567,7 +685,15 @@ public class Utils {
     }
 
     private static final String getProfileDisplayName(Context context) {
+        if(context == null){
+            Log.d("Utils","context is null !!!");    
+            return null;
+        }
         final ContentResolver cr = context.getContentResolver();
+        if(cr == null) {   
+            Log.d("Utils","getContentResolver is null !!!");    
+            return null ;
+        }
         final Cursor profile = cr.query(Profile.CONTENT_URI,
                 new String[] {Profile.DISPLAY_NAME}, null, null, null);
         if (profile == null) return null;
@@ -577,6 +703,9 @@ public class Utils {
                 return null;
             }
             return profile.getString(0);
+        } catch (Exception e){
+            Log.d("Utils","getProfileDisplayName error : " + e.toString());    
+            return null;
         } finally {
             profile.close();
         }

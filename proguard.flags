@@ -11,6 +11,7 @@
 -keep class com.android.settings.MasterClearConfirm
 -keep class com.android.settings.accounts.*
 -keep class com.android.settings.fuelgauge.*
+-keep class com.android.settings.ethernet.*
 -keep class com.android.settings.users.*
 -keep class com.android.settings.NotificationStation
 -keep class com.android.settings.nfc.*

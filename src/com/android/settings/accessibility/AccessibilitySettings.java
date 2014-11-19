@@ -387,6 +387,23 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
             // nor long press power does not show global actions menu.
             mSystemsCategory.removePreference(mGlobalGesturePreferenceScreen);
         }
+        if(Utils.platformHasTvUiMode()){
+        	initPreferencesForTV();
+        }
+    }
+    
+    private void initPreferencesForTV(){
+    	PreferenceScreen caption = (PreferenceScreen) findPreference("captioning_preference_screen");
+    	mSystemsCategory.removePreference(caption);
+    	
+    	mSystemsCategory.removePreference(mDisplayMagnificationPreferenceScreen);
+    	
+    	mSystemsCategory.removePreference(mToggleSpeakPasswordPreference);
+    	
+    	PreferenceScreen text2speech = (PreferenceScreen) findPreference("tts_settings_preference");
+    	mSystemsCategory.removePreference(text2speech);
+    	
+    	mSystemsCategory.removePreference(mSelectLongPressTimeoutPreference);
     }
 
     private void updateAllPreferences() {

@@ -83,7 +83,7 @@ public abstract class DeviceListPreferenceFragment extends
         }
         mLocalAdapter = mLocalManager.getBluetoothAdapter();
 
-        addPreferencesForActivity();
+	 addPreferencesForActivity();
 
         mDeviceListGroup = (PreferenceCategory) findPreference(KEY_BT_DEVICE_LIST);
     }

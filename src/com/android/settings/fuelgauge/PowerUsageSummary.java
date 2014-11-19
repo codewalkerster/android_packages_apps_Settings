@@ -205,11 +205,14 @@ public class PowerUsageSummary extends PreferenceFragment {
         hist.setOrder(-1);
         mAppListGroup.addPreference(hist);
 
+        /*
+        * just ignore the value from PowerProfile, because of bad default value in PowerProfile.xml
         if (mStatsHelper.getPowerProfile().getAveragePower(
                 PowerProfile.POWER_SCREEN_FULL) < 10) {
             addNotAvailableMessage();
             return;
         }
+        */
         mStatsHelper.refreshStats(false);
         List<BatterySipper> usageList = mStatsHelper.getUsageList();
         for (BatterySipper sipper : usageList) {

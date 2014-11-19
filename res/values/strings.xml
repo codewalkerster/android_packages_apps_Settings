@@ -571,6 +571,8 @@
     <!-- The title of the activity to adjust display settings -->
     <string name="display_label">Screen</string>
     <!-- The title of the activity to see phone info -->
+    <string name="phone_info_label" product="mbx">MBX info</string>
+    <!-- The title of the activity to see phone info -->
     <string name="phone_info_label" product="tablet">Tablet info</string>
     <!-- The title of the activity to see phone info -->
     <string name="phone_info_label" product="default">Phone info</string>
@@ -615,6 +617,8 @@
     <string name="roaming_turn_it_on_button">Turn it on</string>
     <!-- mobile network settings screen, message in dialog box that appears when you select the "Data roaming" check box -->
     <string name="roaming_warning">When you allow data roaming, you may incur significant roaming charges!</string>
+    <!-- mobile network settings screen, message in dialog box that appears when you select the "Data roaming" check box. This is for multiuser tablets [CHAR LIMIT=none] -->
+    <string name="roaming_warning_multiuser" product="mbx">When you allow data roaming, you may incur significant roaming charges!\n\nThis setting affects all users on this mbx.</string>
     <!-- mobile network settings screen, message in dialog box that appears when you select the "Data roaming" check box. This is for multiuser tablets [CHAR LIMIT=none] -->
     <string name="roaming_warning_multiuser" product="tablet">When you allow data roaming, you may incur significant roaming charges!\n\nThis setting affects all users on this tablet.</string>
     <!-- mobile network settings screen, message in dialog box that appears when you select the "Data roaming" check box. This is for multiuser phones [CHAR LIMIT=none] -->
@@ -718,10 +722,16 @@
     <string name="crypt_keeper_settings_title">Encryption</string>
 
     <!-- Title of the preferences item to control encryption -->
+    <string name="crypt_keeper_encrypt_title" product="mbx">Encrypt mbx</string>
+    <!-- Title of the preferences item to control encryption -->
     <string name="crypt_keeper_encrypt_title" product="tablet">Encrypt tablet</string>
     <!-- Title of the preferences item to control encryption -->
     <string name="crypt_keeper_encrypt_title" product="default">Encrypt phone</string>
 
+    <!-- Summary of the preferences item to control encryption, when encryption is inactive -->
+    <string name="crypt_keeper_encrypt_summary" product="mbx">
+    Require a numeric PIN or password to decrypt your mbx each time you
+    power it on</string>
     <!-- Summary of the preferences item to control encryption, when encryption is inactive -->
     <string name="crypt_keeper_encrypt_summary" product="tablet">
     Require a numeric PIN or password to decrypt your tablet each time you
@@ -733,6 +743,15 @@
     <!-- Summary of the preferences item to control encryption, when encryption is active -->
     <string name="crypt_keeper_encrypted_summary">Encrypted</string>
 
+    <!-- Informational text in the first confirmation screen before starting device encryption -->
+    <string name="crypt_keeper_desc" product="mbx">
+    You can encrypt your accounts, settings, downloaded apps and their data,
+    media, and other files. Once you encrypt your mbx, you need to type a numeric PIN
+    or password to decrypt it each time you power it on. You can\'t decrypt your mbx
+    except by performing a factory data reset, erasing all your data.\n\nEncryption takes
+    an hour or more. You must start with a charged battery and keep your mbx plugged in
+    until encryption is complete. If you interrupt the encryption process, you will lose
+    some or all of your data.</string>
     <!-- Informational text in the first confirmation screen before starting device encryption -->
     <string name="crypt_keeper_desc" product="tablet">
     You can encrypt your accounts, settings, downloaded apps and their data,
@@ -751,7 +770,8 @@
     an hour or more. You must start with a charged battery and keep your phone plugged in
     until encryption is complete. If you interrupt the encryption process, you will lose
     some or all of your data.</string>
-
+    <!-- Button text to start encryption process -->
+    <string name="crypt_keeper_button_text" product="mbx">Encrypt mbx</string>
     <!-- Button text to start encryption process -->
     <string name="crypt_keeper_button_text" product="tablet">Encrypt tablet</string>
     <!-- Button text to start encryption process -->
@@ -771,6 +791,11 @@
     <!-- Title of the final confirmation screen before starting device encryption -->
     <string name="crypt_keeper_confirm_title">Encrypt?</string>
     <!-- Warning text in the final confirmation screen before starting device encryption -->
+    <string name="crypt_keeper_final_desc" product="mbx">
+    The encryption operation is irreversible and if you interrupt it, you\'ll lose data.
+    Encryption takes an hour or more, during which the mbx will restart several times.
+    </string>
+    <!-- Warning text in the final confirmation screen before starting device encryption -->
     <string name="crypt_keeper_final_desc" product="tablet">
     The encryption operation is irreversible and if you interrupt it, you\'ll lose data.
     Encryption takes an hour or more, during which the tablet will restart several times.
@@ -783,7 +808,9 @@
 
     <!-- Title of the progress screen while encrypting the device -->
     <string name="crypt_keeper_setup_title">Encrypting</string>
-
+    <!-- Informational text on the progress screen while encrypting the device -->
+    <string name="crypt_keeper_setup_description" product="mbx">Wait while your mbx
+    is being encrypted. <xliff:g id="percent" example="50">^1</xliff:g>% complete.</string>
     <!-- Informational text on the progress screen while encrypting the device -->
     <string name="crypt_keeper_setup_description" product="tablet">Wait while your tablet
     is being encrypted. <xliff:g id="percent" example="50">^1</xliff:g>% complete.</string>
@@ -799,6 +826,15 @@
 
     <!-- Title of the encryption screen when encrypting the device failed -->
     <string name="crypt_keeper_failed_title">Encryption unsuccessful</string>
+    <!-- Informational text when encryption fails -->
+    <string name="crypt_keeper_failed_summary" product="mbx">
+      Encryption was interrupted and can\'t complete. As a result, the data on
+      your mbx is no longer accessible.
+      \n\n
+      To resume using your mbx, you need to perform a factory reset.
+      When you set up your mbx after the reset, you\'ll have an opportunity
+      to restore any data that was backed up to your Google Account.
+    </string>
 
     <!-- Informational text when encryption fails -->
     <string name="crypt_keeper_failed_summary" product="tablet">
@@ -1274,6 +1310,8 @@
     <!-- Used in the 1st-level settings screen to turn on NFC -->
     <string name="nfc_quick_toggle_title">NFC</string>
     <!-- Description of NFC in the 1st level settings screen, for a tablet. [CHAR LIMIT=NONE] -->
+    <string name="nfc_quick_toggle_summary" product="mbx">Allow data exchange when the mbx touches another device</string>
+    <!-- Description of NFC in the 1st level settings screen, for a tablet. [CHAR LIMIT=NONE] -->
     <string name="nfc_quick_toggle_summary" product="tablet">Allow data exchange when the tablet touches another device</string>
     <!-- Description of NFC in the 1st level settings screen, for a phone. [CHAR LIMIT=NONE] -->
     <string name="nfc_quick_toggle_summary" product="default">Allow data exchange when the phone touches another device</string>
@@ -1291,6 +1329,26 @@
     <!-- Explanation of the Android Beam feature in the Android Beam settings panel. The use of "beam" here is as a verb and not considered trademarked. [CHAR LIMIT=NONE] -->
     <string name="android_beam_explained">When this feature is turned on, you can beam app content to another NFC-capable device by holding the devices close together. For example, you can beam Browser pages, YouTube videos, People contacts, and more.\n\nJust bring the devices together (typically back to back) and then touch your screen. The app determines what gets beamed.</string>
 
+    <!-- Ethernet configuration dialog -->        
+    <string name="eth_config_title">Configure Ethernet device</string>        
+    <string name="eth_setting">Ethernet</string>        
+    <string name="eth_dev_list">Ethernet Devices:</string>        
+    <string name="eth_con_type">Connection Type</string>        
+    <string name="eth_con_type_dhcp">DHCP</string>        
+    <string name="eth_con_type_manual">Static IP</string>        
+    <string name="eth_dns">DNS address</string>        
+    <string name="eth_gw">Gateway address</string>        
+    <string name="eth_ipaddr">IP address</string>        
+    <string name="eth_quick_toggle_title">Ethernet</string>        
+    <string name="eth_quick_toggle_summary">Turn on Ethernet</string>        
+    <string name="eth_conf_perf_title">Ethernet configuration</string>        
+    <string name="eth_conf_summary">Configure Ethernet devices</string>        
+    <string name="eth_mask">Netmask</string>        
+    <string name="eth_toggle_summary_off">Turn off Ethernet</string>        
+    <string name="eth_toggle_summary_on">Turn on Ethernet</string>        
+    <string name="eth_settings_error">Failed to set: Please enter the valid characters 0~255</string>
+
+    
     <!-- Network service discovery settings -->
     <!-- Used in the 1st-level settings screen to turn on NSD -->
     <string name="nsd_quick_toggle_title">Network service discovery</string>
@@ -1383,7 +1441,9 @@
     <!-- Wi-Fi settings. wps menu title [CHAR LIMIT=25]-->
     <string name="wifi_setup_wps">Automatic setup (WPS)</string>
     <!-- Message informing that wifi is required during setup [CHAR LIMIT=NONE] -->
-    <string name="wifi_required_info_text">To complete setup, your tablet needs access to Wi\u2011Fi. After setup, you can switch between mobile data and Wi\u2011Fi.</string>
+    <string name="wifi_required_info_text" product="mbx">To complete setup, your mbx needs access to Wi-Fi. After setup, you can switch between mobile data and Wi-Fi.</string>
+    <!-- Message informing that wifi is required during setup [CHAR LIMIT=NONE] -->
+    <string name="wifi_required_info_text" product="default">To complete setup, your tablet needs access to Wi-Fi. After setup, you can switch between mobile data and Wi-Fi.</string>
 
     <!-- Dialog for Access Points --> <skip />
     <!-- Label to show/hide advanced options -->
@@ -1525,17 +1585,22 @@
     <string name="wifi_skip_anyway">Skip anyway</string>
     <!-- Button for going to the previous screen or step [CHAR LIMIT=20] -->
     <string name="wifi_dont_skip">Don\'t skip</string>
-
+    <!-- Text warning about skipping Wi-Fi with a mobile connect (tablet) [CHAR LIMIT=NONE]-->
+    <string name="wifi_skipped_message" product="mbx" msgid="6518433975501257341">WARNING: You may incur extra carrier data charges.\n\nMBX setup can require significant network activity.</string>
     <!-- Text warning about skipping Wi-Fi with a mobile connect (tablet) [CHAR LIMIT=NONE]-->
     <string name="wifi_skipped_message" product="tablet">WARNING: You may incur extra carrier data charges.\n\nTablet setup can require significant network activity.</string>
     <!-- Text warning about skipping Wi-Fi with a mobile connect (phone) [CHAR LIMIT=NONE]-->
     <string name="wifi_skipped_message" product="default">WARNING: You may incur extra carrier data charges.\n\nPhone setup can require significant network activity.</string>
     <!-- Text warning about skipping Wi-Fi without a mobile connect (tablet) [CHAR LIMIT=NONE] -->
-    <string name="wifi_and_mobile_skipped_message" product="tablet">WARNING: Until you have an internet connection, the tablet won\'t be able to verify that your software is up to date.</string>
+    <string name="wifi_and_mobile_skipped_message" product="mbx">WARNING: The mbx won\'t be able to verify that your software is up to date.</string>
+    <!-- Text warning about skipping Wi-Fi without a mobile connect (tablet) [CHAR LIMIT=NONE] -->
+    <string name="wifi_and_mobile_skipped_message" product="tablet">WARNING: The tablet won\'t be able to verify that your software is up to date.</string>
     <!-- Text warning about skipping Wi-Fi without a mobile connect (phone) [CHAR LIMIT=NONE] -->
     <string name="wifi_and_mobile_skipped_message" product="default">WARNING: Until you have an internet connection, the phone won\'t be able to verify that your software is up to date.</string>
     <!-- Text alerting that Wi-Fi couldn't connect (tablet) [CHAR LIMIT=NONE] -->
-    <string name="wifi_connect_failed_message" product="tablet">The tablet was unable to connect to this Wi\u2011Fi network.</string>
+    <string name="wifi_connect_failed_message" product="mbx">The mbx was unable to connect to this Wi-Fi network.</string>
+    <!-- Text alerting that Wi-Fi couldn't connect (tablet) [CHAR LIMIT=NONE] -->
+    <string name="wifi_connect_failed_message" product="tablet">The tablet was unable to connect to this Wi-Fi network.</string>
     <!-- Text alerting that Wi-Fi couldn't connect (phone) [CHAR LIMIT=NONE] -->
     <string name="wifi_connect_failed_message" product="default">The phone was unable to connect to this Wi\u2011Fi network.</string>
 
@@ -1799,6 +1864,8 @@
     <!-- Dock audio summary for docked to car dock -->
     <string name="dock_audio_summary_car">Settings for the attached car dock</string>
     <!-- Dock audio summary for undocked -->
+    <string name="dock_audio_summary_none" product="mbx">MBX not docked</string>
+    <!-- Dock audio summary for undocked -->
     <string name="dock_audio_summary_none" product="tablet">Tablet not docked</string>
     <!-- Dock audio summary for undocked -->
     <string name="dock_audio_summary_none" product="default">Phone not docked</string>
@@ -1807,11 +1874,15 @@
     <!-- Dock not found dialog title -->
     <string name="dock_not_found_title">Dock not found</string>
     <!-- Dock not found dialog text -->
+    <string name="dock_not_found_text" product="mbx">You need to dock the mbx before setting up dock audio.</string>
+    <!-- Dock not found dialog text -->
     <string name="dock_not_found_text" product="tablet">You need to dock the tablet before setting up dock audio.</string>
     <!-- Dock not found dialog text -->
     <string name="dock_not_found_text" product="default">You need to dock the phone before setting up dock audio.</string>
     <!-- Dock settings screen, dock events SFX setting check box label -->
     <string name="dock_sounds_enable_title">Dock insert sound</string>
+    <!-- Dock settings screen, setting option summary text when check box is selected -->
+    <string name="dock_sounds_enable_summary_on" product="mbx">Play sound when inserting or removing mbx from dock</string>
     <!-- Dock settings screen, setting option summary text when check box is selected -->
     <string name="dock_sounds_enable_summary_on" product="tablet">Play sound when inserting or removing tablet from dock</string>
     <!-- Dock settings screen, setting option summary text when check box is selected -->
@@ -1835,9 +1906,13 @@
     <!-- Sound & display settings screen, accelerometer-based rotation check box label -->
     <string name="accelerometer_title">Auto-rotate screen</string>
     <!-- Sound & display settings screen, accelerometer-based rotation summary text when check box is selected -->
+    <string name="accelerometer_summary_on" product="mbx">Switch orientation automatically when rotating mbx</string>
+    <!-- Sound & display settings screen, accelerometer-based rotation summary text when check box is selected -->
     <string name="accelerometer_summary_on" product="tablet">Switch orientation automatically when rotating tablet</string>
     <!-- Sound & display settings screen, accelerometer-based rotation summary text when check box is selected -->
     <string name="accelerometer_summary_on" product="default">Switch orientation automatically when rotating phone</string>
+    <!-- Sound & display settings screen, accelerometer-based rotation summary text when check box is clear -->
+    <string name="accelerometer_summary_off" product="mbx">Switch orientation automatically when rotating mbx</string>
     <!-- Sound & display settings screen, accelerometer-based rotation summary text when check box is clear -->
     <string name="accelerometer_summary_off" product="tablet">Switch orientation automatically when rotating tablet</string>
     <!-- Sound & display settings screen, accelerometer-based rotation summary text when check box is clear -->
@@ -1883,6 +1958,18 @@
     <!-- [CHAR LIMIT=40] Sound & display settings screen, title of dialog for picking font size -->
     <string name="dialog_title_font_size">Font size</string>
 
+	<!--EasyLink settings-->
+	<string name="easylink_settings">EasyLink</string>
+	<string name="easylink_settings_summery">EasyLink setting</string>
+	<string name="one_touch_play">One Touch Play</string>
+	<string name="one_touch_play_summery">One Touch Play settings</string>
+	<string name="one_touch_standby">One Touch Standby</string>
+	<string name="one_touch_standby_summery">One Touch Standby setting</string>
+	<string name="auto_power_on_from_TV">Auto Power on from TV</string>
+	<string name="auto_power_on_from_TV_summery">Auto Power on from TV setting</string>
+	<string name="easylink_status_on">ON</string>
+	<string name="easylink_status_OFF">OFF</string>
+	
     <!-- SIM lock settings title -->
     <string name="sim_lock_settings">SIM card lock settings</string>
     <!-- Security & location settings screen, setting option name -->
@@ -1928,6 +2015,8 @@
     <string name="sim_enter_ok">OK</string>
     <!-- SIM card lock settings screen, SIM PIN dialog button labels: -->
     <string name="sim_enter_cancel">Cancel</string>
+    <!-- Advanced (used for diagnostics) device info activity title -->
+    <string name="device_info_settings" product="mbx">MBX status</string>
 
     <!-- Instructions telling the user that they entered the wrong SIM PIN for the last time.
          Displayed in a dialog box.  -->
@@ -1973,6 +2062,8 @@
     <string name="device_status_activity_title">Status</string>
     <!-- About phone screen, title of the item to go into the Phone status screen -->
     <string name="device_status">Status</string>
+    <!-- About tablet screen, summary of the item that takes you to tablet status screen -->
+    <string name="device_status_summary" product="mbx">Status of network and other information</string>
     <!-- About tablet screen, summary of the item that takes you to tablet status screen -->
     <string name="device_status_summary" product="tablet">Status of the battery, network, and other information</string>
     <!-- About phone screen, summary of the item to go into the phone status screen -->
@@ -2061,24 +2152,29 @@
     <string name="sd_eject" product="nosdcard">Unmount shared storage</string>
     <!-- SD card & phone storage settings item title that will result in the phone unmounting the SD card.  This will be done before the user phyiscally removes the SD card from the phone.  Kind of like the "Safely remove" on some operating systems.   -->
     <string name="sd_eject" product="default">Unmount SD card</string>
+    <string name="usb_storage_eject">Unmount USB storage</string>
     <!-- SD card & phone storage settings item title that will result in the phone unmounting the SD card.  This will be done before the user phyiscally removes the SD card from the phone.  Kind of like the "Safely remove" on some operating systems.   [CHAR LIMIT=30] -->
     <string name="sd_eject_summary" product="nosdcard">Unmount the internal USB storage</string>
     <!-- SD card & phone storage settings item title that will result in the phone unmounting the SD card.  This will be done before the user phyiscally removes the SD card from the phone.  Kind of like the "Safely remove" on some operating systems.   -->
     <string name="sd_eject_summary" product="default">Unmount the SD card so you can safely remove it</string>
+    <string name="usb_storage_eject_summary">Unmount the USB storage so you can safely remove it</string>
     <!-- SD card & phone storage settings item title for toggling PTP mode on and off.  When PTP mode is on the device will appear on the USB bus as a PTP camera device instead of an MTP music player.   -->
 
     <!-- SD card & phone storage settings item summary that is displayed when no SD card is inserted.  This version of the string can probably never come up on current hardware. [CHAR LIMIT=25] -->
     <string name="sd_insert_summary" product="nosdcard">Insert USB storage for mounting</string>
+    <string name="usb_storage_insert_summary">Insert USB storage for mounting</string>
     <!-- SD card & phone storage settings item summary that is displayed when no SD card is inserted -->
     <string name="sd_insert_summary" product="default">Insert an SD card for mounting</string>
 
     <!-- Storage setting item that will mount USB storage if it unmounted. A user should never see this. [CHAR LIMIT=25] -->
     <string name="sd_mount" product="nosdcard">Mount USB storage</string>
+    <string name="usb_storage_mount">Mount USB storage</string>
     <!-- SD card & phone storage settings item title that will result in the phone mounting the SD card. -->
     <string name="sd_mount" product="default">Mount SD card</string>
 
     <!-- Subtext for Mount USB storage in Storage settings. User should never see this since we use automount. -->
     <string name="sd_mount_summary" product="nosdcard"></string>
+    <string name="usb_storage_mount_summary"></string>
     <!-- Subtext for Mount SD Card in Storage settings. User should never see this since we use automount. -->
     <string name="sd_mount_summary" product="default"></string>
     <!-- SD card & phone storage settings item title that will result in the phone formatting the USB storage.   [CHAR LIMIT=25] -->
@@ -2101,10 +2197,12 @@
 
     <!-- SD card eject confirmation dialog title   [CHAR LIMIT=25] -->
     <string name="dlg_confirm_unmount_title" product="nosdcard">Unmount USB storage?</string>
+    <string name="dlg_confirm_unmount_title_usb_storage">Unmount USB storage?</string>
     <!-- SD card eject confirmation dialog title   -->
     <string name="dlg_confirm_unmount_title" product="default">Unmount SD card?</string>
     <!-- SD card eject confirmation dialog  [CHAR LIMIT=NONE] -->
     <string name="dlg_confirm_unmount_text" product="nosdcard">If you unmount the USB storage, some apps you are using will stop and may be unavailable until you remount the USB storage.</string>
+    <string name="dlg_confirm_unmount_text_usb_storage">If you unmount the USB storage, some apps you are using will stop and may be unavailable until you remount the USB storage.</string>
     <!-- SD card eject confirmation dialog  -->
     <string name="dlg_confirm_unmount_text" product="default">If you unmount the SD card, some apps you are using will stop and may be unavailable until you remount the SD card.</string>
     <!-- SD card eject error dialog title   [CHAR LIMIT=30] -->
@@ -2117,6 +2215,7 @@
     <string name="dlg_error_unmount_text" product="default">Couldn\'t unmount SD card. Try again later.</string>
     <!-- SD card unmount informative text   [CHAR LIMIT=NONE] -->
     <string name="unmount_inform_text" product="nosdcard">USB storage will be unmounted.</string>
+    <string name="unmount_inform_text_usb_storage">USB storage will be unmounted.</string>
     <!-- SD card unmount informative text   [CHAR LIMIT=NONE] -->
     <string name="unmount_inform_text" product="default">SD card will be unmounted.</string>
     <!-- SD card eject progress title   -->
@@ -2144,6 +2243,8 @@
     <string name="usb_ptp_title">Camera (PTP)</string>
     <!-- Storage setting.  Label for installer CD [CHAR LIMIT=30]-->
     <string name="usb_ptp_summary">Lets you transfer photos using camera software, and transfer any files on computers that don\'t support MTP</string>
+    <string name="usb_mass_storage_title">Mass Storage</string>
+    <string name="usb_mass_storage_summary">Use Mass Storage to share files</string>
     <!-- Storage setting.  Summary for PTP checkbox [CHAR LIMIT=NONE]-->
     <string name="usb_label_installer_cd">"Install file-transfer tools"</string>
 
@@ -2241,9 +2342,13 @@
     <!-- SD card & phone storage settings screen, setting option name under Internal phone storage heading -->
     <string name="master_clear_title">Factory data reset</string>
     <!-- SD card & phone storage settings screen, setting option summary text under Internal phone storage heading -->
+    <string name="master_clear_summary" product="mbx">Erases all data on mbx</string>
+    <!-- SD card & phone storage settings screen, setting option summary text under Internal phone storage heading -->
     <string name="master_clear_summary" product="tablet">Erases all data on tablet</string>
     <!-- SD card & phone storage settings screen, setting option summary text under Internal phone storage heading -->
     <string name="master_clear_summary" product="default">Erases all data on phone</string>
+ 	 <!-- SD card & phone storage settings screen, message on screen after user selects Factory data reset [CHAR LIMIT=NONE] -->
+    <string name="master_clear_desc" product="mbx">"This will erase all data from your mbx\'s <b>internal storage</b>, including:\n\n<li>Your Google account</li>\n<li>System and app data and settings</li>\n<li>Downloaded apps</li>"</string>
     <!-- SD card & phone storage settings screen, message on screen after user selects Factory data reset [CHAR LIMIT=NONE] -->
     <string name="master_clear_desc" product="tablet">"This will erase all data from your tablet\'s <b>internal storage</b>, including:\n\n<li>Your Google account</li>\n<li>System and app data and settings</li>\n<li>Downloaded apps</li>"</string>
     <!-- SD card & phone storage settings screen, message on screen after user selects Factory data reset [CHAR LIMIT=NONE] -->
@@ -2264,6 +2369,8 @@
     <string name="erase_external_storage_description" product="nosdcard">Erase all the data on the internal USB storage, such as music or photos</string>
     <!-- SD card & phone storage settings screen, description for check box to erase USB storage [CHAR LIMIT=NONE] -->
     <string name="erase_external_storage_description" product="default">Erase all the data on the SD card, such as music or photos</string>
+    <!-- SD card & phone storage settings screen, button on screen after user selects Factory data reset -->
+    <string name="master_clear_button_text" product="mbx">Reset mbx</string>
     <!-- SD card & phone storage settings screen, button on screen after user selects Factory data reset -->
     <string name="master_clear_button_text" product="tablet">Reset tablet</string>
     <!-- SD card & phone storage settings screen, button on screen after user selects Factory data reset -->
@@ -2438,6 +2545,8 @@
     <!-- [CHAR LIMIT=30] Security & location settings screen, setting check box label for GPS satellites -->
     <string name="location_gps">GPS satellites</string>
     <!-- [CHAR LIMIT=100] Security & location settings screen, setting check box summary for GPS satellites on a tablet -->
+    <string name="location_street_level" product="mbx">Let apps use GPS on your mbx to pinpoint your location</string>
+    <!-- [CHAR LIMIT=100] Security & location settings screen, setting check box summary for GPS satellites on a tablet -->
     <string name="location_street_level" product="tablet">Let apps use GPS on your tablet to pinpoint your location</string>
     <!-- [CHAR LIMIT=100] Security & location settings screen, setting check box summary for GPS satellites on a phone -->
     <string name="location_street_level" product="default">Let apps use GPS on your phone to pinpoint your location</string>
@@ -2459,6 +2568,8 @@
     <string name="location_sources_heading">Location sources</string>
 
     <!-- About --> <skip />
+    <!-- Main settings screen, setting title for the user to go into the About MediaBox screen -->
+    <string name="about_settings" product="mbx">About MediaBox</string>
     <!-- Main settings screen, setting title for the user to go into the About phone screen -->
     <string name="about_settings" product="tablet">About tablet</string>
     <!-- Main settings screen, setting title for the user to go into the About phone screen -->
@@ -2600,6 +2711,11 @@
     <string name="install_applications">Unknown sources</string>
     <!-- Applications settings screen, setting check box summary.  This is the summary for "Unknown sources" checkbox  -->
     <string name="install_unknown_applications">Allow installation of apps from unknown sources</string>
+    <!-- Applications settings screen, message text of alert that appears if user selects the "Unknown sources" check box -->
+    <string name="install_all_warning" product="mbx">Your mbx and personal data are more vulnerable to attack by apps
+ from unknown sources. You agree that you are solely responsible for any
+ damage to your mbx or loss of data that may result from using
+ these apps.</string>
     <!-- Applications settings screen, message text of alert that appears if user selects the "Unknown sources" check box -->
     <string name="install_all_warning" product="tablet">Your tablet and personal data are more vulnerable to attack by apps
  from unknown sources. You agree that you are solely responsible for any
@@ -2765,9 +2881,18 @@
     <!-- Manage applications, text for dialog if clear data fails-->
     <string name="clear_failed_dlg_text">Couldn\'t clear data for app.</string>
     <!-- Manage applications, individual application info screen, text that appears under the "Permissions" heading. This describes the permissions that the application has. -->
+    <string name="security_settings_desc" product="mbx">This app can access the following on your mbx:</string>
+    <!-- Manage applications, individual application info screen, text that appears under the "Permissions" heading. This describes the permissions that the application has. -->
     <string name="security_settings_desc" product="tablet">This app can access the following on your tablet:</string>
     <!-- Manage applications, individual application info screen, text that appears under the "Permissions" heading. This describes the permissions that the application has. -->
     <string name="security_settings_desc" product="default">This app can access the following on your phone:</string>
+    <!-- [CHAR_LIMIT=NONE] Manage applications, individual application info screen, text that appears under the "Permissions" heading.
+         This describes the permissions that the application has.  It is used when multiple packages are contributing
+         to the permissions and need to be listed here. -->
+    <string name="security_settings_desc_multi" product="mbx">This app can access the following on your mbx.
+         In order to improve performance and reduce memory usage, some of these permissions
+         are available to <xliff:g id="base_app_name">%1$s</xliff:g>
+         because it runs in the same process as <xliff:g id="additional_apps_list">%2$s</xliff:g>:</string>
     <!-- [CHAR_LIMIT=NONE] Manage applications, individual application info screen, text that appears under the "Permissions" heading.
          This describes the permissions that the application has.  It is used when multiple packages are contributing
          to the permissions and need to be listed here. -->
@@ -2802,6 +2927,8 @@
     <string name="version_text">version <xliff:g id="version_num">%1$s</xliff:g></string>
     <!-- Manage applications, text for Move button -->
     <string name="move_app">Move</string>
+    <!-- Manage applications, text for Move button to move app to internal storage -->
+    <string name="move_app_to_internal" product="mbx">Move to mbx</string>
     <!-- Manage applications, text for Move button to move app to internal storage -->
     <string name="move_app_to_internal" product="tablet">Move to tablet</string>
     <!-- Manage applications, text for Move button to move app to internal storage -->
@@ -2937,6 +3064,10 @@
     <!-- Running service details, stop confirmation dialog title. Displays when user selects selects to stop a system service. -->
     <string name="runningservicedetails_stop_dlg_title">Stop system service?</string>
     <!-- Running service details, stop confirmation descriptive text. Displays when user selects selects to stop a system service. -->
+    <string name="runningservicedetails_stop_dlg_text" product="mbx">If you stop this service, some
+        features of your mbx may stop working correctly until you power it off
+        and then on again.</string>
+    <!-- Running service details, stop confirmation descriptive text. Displays when user selects selects to stop a system service. -->
     <string name="runningservicedetails_stop_dlg_text" product="tablet">If you stop this service, some
         features of your tablet may stop working correctly until you power it off
         and then on again.</string>
@@ -3063,6 +3194,8 @@
 
     <!-- This is for diagnostics screen. The title of a screen with various items realted to launching screens that will giev the user info. For example, it contains "Phone information" and "Battery information" -->
     <string name="testing">Testing</string>
+    <!-- In the Testing screen.  The item title of the activity that shows a bunch of phone-related information.  -->
+    <string name="testing_phone_info" product="mbx">MBX information</string>
     <!-- In the Testing screen.  The item title of the activity that shows a bunch of phone-related information.  -->
     <string name="testing_phone_info" product="tablet">Tablet information</string>
     <!-- In the Testing screen.  The item title of the activity that shows a bunch of phone-related information.  -->
@@ -3312,6 +3445,21 @@
     <!-- Summary for the disabled state of an accessibility feature. [CHAR LIMIT=10] -->
     <string name="accessibility_feature_state_off">Off</string>
 
+    <!-- Summary for the allowed state of script injection. [CHAR LIMIT=15] -->
+    <string name="accessibility_script_injection_allowed">Allowed</string>
+    <!-- Summary for the disallowed state of script injection. [CHAR LIMIT=15] -->
+    <string name="accessibility_script_injection_disallowed">Not allowed</string>
+
+    <!-- Title for the dialog button to allow script injection. [CHAR LIMIT=15] -->
+    <string name="accessibility_script_injection_button_allow">Allow</string>
+    <!-- Title for the dialog button to disallow script injection. [CHAR LIMIT=15] -->
+    <string name="accessibility_script_injection_button_disallow">Don\'t allow</string>
+    
+    <!-- Title for a warning message about security implications of enabling an accessibility service,
+         displayed as a dialog message when the user selects to enable an accessibility service (tablet). [CHAR LIMIT=NONE] -->
+    <string name="accessibility_service_security_warning_title">Use
+         <xliff:g id="service" example="TalkBack">%1$s</xliff:g>?</string>
+
     <!-- Title for the preference category containing the video caption preview. [CHAR LIMIT=35] -->
     <string name="captioning_preview_title">Preview</string>
     <!-- Title for the preference catgeory containing standard video caption options. [CHAR LIMIT=35] -->
@@ -3371,6 +3519,33 @@
          service. [CHAR LIMIT=NONE] -->
     <string name="enable_service_title">Use
          <xliff:g id="service" example="TalkBack">%1$s</xliff:g>?</string>
+    <!-- Summary for a warning message about security implications of enabling an accessibility service,
+         displayed as a dialog message when the user selects to enable an accessibility service (tablet). [CHAR LIMIT=NONE] -->
+    <string name="accessibility_service_security_warning_summary" product="mbx">
+            <xliff:g id="accessibility_service_name">%1$s</xliff:g> can
+            collect all of the text you type, except passwords. This includes personal data such as credit card
+            numbers. It can also collect data about your interactions with the mbx.</string>
+    <!-- Summary for a warning message about security implications of enabling an accessibility service,
+         displayed as a dialog message when the user selects to enable an accessibility service (tablet). [CHAR LIMIT=NONE] -->
+    <string name="accessibility_service_security_warning_summary" product="tablet">
+            <xliff:g id="accessibility_service_name">%1$s</xliff:g> can
+            collect all of the text you type, except passwords. This includes personal data such as credit card
+            numbers. It can also collect data about your interactions with the tablet.</string>
+    <!-- Summary for a warning message about security implications of enabling an accessibility service,
+         displayed as a dialog message when the user selects to enable an accessibility service (phone). [CHAR LIMIT=NONE] -->
+    <string name="accessibility_service_security_warning_summary" product="default">
+            <xliff:g id="accessibility_service_name">%1$s</xliff:g> can
+            collect all of the text you type, except passwords. This includes personal data such as credit card
+            numbers. It can also collect data about your interactions with the phone.</string>
+
+    <!-- Title for a warning about disabling an accessibility service displayed as a dialog message when the user
+         selects to disable that service. This avoids accidental disabling. [CHAR LIMIT=NONE] -->
+    <string name="accessibility_service_disable_warning_title">Stop
+         <xliff:g id="service" example="TalkBack">%1$s</xliff:g>?</string>
+    <!-- Summary for a warning about disabling accessibility service displayed as a dialog message when the user
+         selects to disable that service. This avoids accidental disabling. [CHAR LIMIT=NONE] -->
+    <string name="accessibility_service_disable_warning_summary">Touching OK will
+        stop <xliff:g id="service" example="TalkBack">%1$s</xliff:g>.</string>
     <!-- Title for the list of capabilities of an accessibility service. -->
     <string name="capabilities_list_title"><xliff:g id="service" example="TalkBack">%1$s</xliff:g>
         needs to:</string>
@@ -3559,6 +3734,8 @@
     <!-- Label for power consumed by Calling -->
     <string name="power_phone">Voice calls</string>
     <!-- Label for power consumed when Idle -->
+    <string name="power_idle" product="mbx">MBX idle</string>
+    <!-- Label for power consumed when Idle -->
     <string name="power_idle" product="tablet">Tablet idle</string>
     <!-- Label for power consumed when Idle -->
     <string name="power_idle" product="default">Phone idle</string>
@@ -3573,6 +3750,8 @@
     <string name="usage_type_gps">GPS</string>
     <!-- [CHAR LIMIT=25] Label for WIFI usage time -->
     <string name="usage_type_wifi_running">Wi\u2011Fi running</string>
+    <!-- Label for Phone usage time -->
+    <string name="usage_type_phone" product="mbx">MBX</string>
     <!-- Label for Phone usage time -->
     <string name="usage_type_phone" product="tablet">Tablet</string>
     <!-- Label for Phone usage time -->
@@ -4208,9 +4387,13 @@
     <!-- Title of remove message for remove account dialog -->
     <string name="really_remove_account_title">Remove account?</string>
     <!-- Remove account message in dialog [CHAR LIMIT=NONE] -->
+    <string name="really_remove_account_message" product="mbx">Removing this account will delete all of its messages, contacts, and other data from the mbx!</string>
+    <!-- Remove account message in dialog [CHAR LIMIT=NONE] -->
     <string name="really_remove_account_message" product="tablet">Removing this account will delete all of its messages, contacts, and other data from the tablet!</string>
     <!-- Remove account message in dialog [CHAR LIMIT=NONE] -->
     <string name="really_remove_account_message" product="default">Removing this account will delete all of its messages, contacts, and other data from the phone!</string>
+    <!-- This is shown if the autheticator for a given account fails to remove it. -->
+    <string name="remove_account_failed" product="mbx">This account is required by some apps. You can only remove it by resetting the mbx to factory defaults (which deletes all your personal data) in Settings &gt; Backup &amp; reset.</string>    
     <!-- This is shown if the autheticator for a given account fails to remove it. -->
     <string name="remove_account_failed" product="tablet">This account is required by some apps. You can only remove it by resetting the tablet to factory defaults (which deletes all your personal data) in Settings &gt; Backup &amp; reset.</string>
     <!-- This is shown if the autheticator for a given account fails to remove it. -->
@@ -4468,6 +4651,8 @@
     <!--  Title of dialog shown when user enables global auto sync [CHAR LIMIT=32] -->
     <string name="data_usage_auto_sync_on_dialog_title">Turn auto-sync data on?</string>
     <!--  Body of dialog shown when user enables global auto sync, for tablet [CHAR LIMIT=none] -->
+    <string name="data_usage_auto_sync_on_dialog" product="mbx">Any changes you make to your accounts on the web will be automatically copied to your mbx.\n\nSome accounts may also automatically copy any changes you make on the mbx to the web. A Google Account works this way.\n\nTo choose which kinds of information to sync within each account, go to Settings &gt; Accounts.</string>
+    <!--  Body of dialog shown when user enables global auto sync, for tablet [CHAR LIMIT=none] -->
     <string name="data_usage_auto_sync_on_dialog" product="tablet">Any changes you make to your accounts on the web will be automatically copied to your tablet.\n\nSome accounts may also automatically copy any changes you make on the tablet to the web. A Google Account works this way.\n\nTo choose which kinds of information to sync within each account, go to Settings &gt; Accounts.</string>
     <!--  Body of dialog shown when user enables global auto sync [CHAR LIMIT=none] -->
     <string name="data_usage_auto_sync_on_dialog" product="default">Any changes you make to your accounts on the web will be automatically copied to your phone.\n\nSome accounts may also automatically copy any changes you make on the phone to the web. A Google Account works this way.\n\nTo choose which kinds of information to sync within each account, go to Settings &gt; Accounts.</string>
@@ -4490,6 +4675,8 @@
 
     <!-- Title of dialog shown before user limits data usage. [CHAR LIMIT=48] -->
     <string name="data_usage_limit_dialog_title">Limiting data usage</string>
+    <!-- Body of dialog shown before user limits mobile data usage. [CHAR LIMIT=NONE] -->
+    <string name="data_usage_limit_dialog_mobile" product="mbx">Your mobile data connection will be disabled when the specified limit is reached.\n\nSince data usage is measured by your mbx, and your carrier may account for usage differently, consider using a conservative limit.</string>
     <!-- Body of dialog shown before user limits mobile data usage. [CHAR LIMIT=NONE] -->
     <string name="data_usage_limit_dialog_mobile" product="tablet">Your mobile data connection will be disabled when the specified limit is reached.\n\nSince data usage is measured by your tablet, and your carrier may account for usage differently, consider using a conservative limit.</string>
     <!-- Body of dialog shown before user limits mobile data usage. [CHAR LIMIT=NONE] -->
@@ -4750,6 +4937,8 @@
     <!-- User (self) removal confirmation message [CHAR LIMIT=none] -->
     <string name="user_confirm_remove_self_message" product="default">You will lose your space and data on this phone. You can\'t undo this action.</string>
     <!-- User removal confirmation message [CHAR LIMIT=none] -->
+    <string name="user_confirm_remove_message" product="mbx">This user\'s space and data will disappear from this mbx. You can\'t undo this action.</string>
+    <!-- User removal confirmation message [CHAR LIMIT=none] -->
     <string name="user_confirm_remove_message" product="tablet">This user\'s space and data will disappear from this tablet. You can\'t undo this action.</string>
     <!-- User removal confirmation message [CHAR LIMIT=none] -->
     <string name="user_confirm_remove_message" product="default">This user\'s space and data will disappear from this phone. You can\'t undo this action.</string>
@@ -4776,6 +4965,8 @@
     <!-- Message to user that Home Settings will be hidden because there is now only one available home application -->
     <string name="only_one_home_message">Home settings will be hidden until you install another home application.</string>
 
+    <!-- Warning message when changing a global setting for a tablet.[CHAR LIMIT=none] -->
+    <string name="global_change_warning" product="mbx">This setting affects all users on this mbx.</string>
     <!-- Warning message when changing a global setting for a tablet.[CHAR LIMIT=none] -->
     <string name="global_change_warning" product="tablet">This setting affects all users on this tablet.</string>
     <!-- Warning message when changing a global setting for a phone.[CHAR LIMIT=none] -->
@@ -4856,6 +5047,45 @@
     <!-- Cell Broadcast settings title [CHAR LIMIT=50] -->
     <string name="cell_broadcast_settings">Cell broadcasts</string>
 
+    <string name="position_help">Help: \n1.Press &quot;Enter Key&quot; to switch zoom in/zoom out; \n2.Press &quot;Direction Keys&quot; to change display position; \n3.Press &quot;Back Key&quot; to save and exit; \n4.Adjusted results will take effect after reboot; \n5.Press &quot;Menu Key&quot; to set default display position.</string>
+    <string name="position_help_noreboot">Help: \n1.Press &quot;Enter Key&quot; to switch zoom in/zoom out; \n2.Press &quot;Direction Keys&quot; to change display position; \n3.Press &quot;Back Key&quot; to save; \n4.Press &quot;Menu Key&quot; to set default display position.</string>
+    <string name="tv_default_frequency">Default HD TV refresh frequency</string>
+    <string name="tv_default_frequency_summary">60Hz</string>
+    
+    <!-- Hdmi settings -->
+    <string name="hdmi_settings">HDMI</string>
+    <string name="hdmi_dual_disp">Enable dual display</string>
+    <string name="hdmi_dual_disp_on">Dual display ON</string>
+    <string name="hdmi_dual_disp_off">Dual display OFF</string>
+    <string name="hdmi_spdif">Set SPDIF</string>
+    <string name="hdmi_auto_switch">Enable auto switch</string>
+    <string name="hdmi_auto_switch_on">Auto switch ON</string>
+    <string name="hdmi_auto_switch_off">Auto switch OFF</string>     
+    
+    <string name="drc_mode_title">DRC Mode</string>
+    <string name="drc_mode_summary">DRC Mode</string>
+    <string name="drc_title">DRC</string>
+    <string name="cec_language_switch_title">Auto switch language </string>
+    <string name="wifi_disable_ethernet_enable">The network route is ethernet now.Please disable it if you want to set Wifi.</string>
+    <array name="language" translatable="false">
+    	<item>zh</item>
+    	<item>en</item>
+    	<item>ja</item>
+		<item>ko</item>
+		<item>fr</item>	
+		<item>de</item>	
+    </array>
+    
+
+   <array name="country" translatable="false">
+   		<item>CN</item>
+   		<item>US</item>
+   		<item>JP</item>
+    	<item>KR</item>
+    	<item>FR</item>	
+    	<item>DE</item>	
+    </array>
+
     <!-- User app limits screen title [CHAR LIMIT=35] -->
     <string name="user_restrictions_title">Application and content restrictions</string>
     <!-- User limits screen, user name rename text [CHAR LIMIT=15] -->
@@ -4902,4 +5132,8 @@
 
     <!-- Text to display in regulatory info screen (from device overlay). -->
     <string name="regulatory_info_text"></string>
+    <string name="auto_brightness">Brightness Save Power Mode</string>
+    <string name="auto_brightness_summary">Auto set brightness in low power state to conserve battery power</string>
+    <string name="custom_gsensor">Gravity Direction Manual Configuration</string>
+    <string name="custom_gsensor_summary">Support gravity direction manual configuration when playing Game</string>
 </resources>

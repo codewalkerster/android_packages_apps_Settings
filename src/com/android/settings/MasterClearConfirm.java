@@ -24,11 +24,15 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.UserHandle;
+import android.os.SystemProperties;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.util.Log;
+
 
 /**
  * Confirm and execute a reset of the device to a clean "just out of the box"
@@ -41,7 +45,7 @@ import android.widget.CheckBox;
  * This is the confirmation screen.
  */
 public class MasterClearConfirm extends Fragment {
-
+    private String TAG = "MasterClearConfirm";
     private View mContentView;
     private boolean mEraseSdCard;
     private Button mFinalButton;
@@ -57,14 +61,24 @@ public class MasterClearConfirm extends Fragment {
             if (Utils.isMonkeyRunning()) {
                 return;
             }
-
+            Log.d(TAG,"mEraseSdCard:" + mEraseSdCard);
+            Boolean hasMassStorage = SystemProperties.getBoolean("ro.has.mass.storage",false);
             if (mEraseSdCard) {
                 Intent intent = new Intent(ExternalStorageFormatter.FORMAT_AND_FACTORY_RESET);
-                intent.setComponent(ExternalStorageFormatter.COMPONENT_NAME);
-                getActivity().startService(intent);
+                intent.setComponent(ExternalStorageFormatter.COMPONENT_NAME);		 
+		if(false == hasMassStorage){
+	                getActivity().startService(intent);
+		}
+		else{
+	                getActivity().startServiceAsUser(intent, UserHandle.CURRENT );
+		}
             } else {
-                getActivity().sendBroadcast(new Intent("android.intent.action.MASTER_CLEAR"));
-                // Intent handling is asynchronous -- assume it will happen soon.
+               Intent intent1 = new Intent("android.intent.action.MASTER_CLEAR");
+               if(hasMassStorage)
+                    intent1.putExtra("wipe_media", true);
+               getActivity().sendBroadcast(intent1);
+                    //getActivity().sendBroadcast(new Intent("android.intent.action.MASTER_CLEAR"));
+                    // Intent handling is asynchronous -- assume it will happen soon.               
             }
         }
     };

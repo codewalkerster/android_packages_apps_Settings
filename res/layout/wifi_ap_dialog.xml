@@ -61,7 +61,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:prompt="@string/wifi_security"
-                    android:entries="@array/wifi_ap_security" />
+                    android:entries="@array/wifi_ap_security" 
+                    android:nextFocusDown="@+id/password" />
         </LinearLayout>
 
         <LinearLayout android:id="@+id/fields"
@@ -82,6 +83,7 @@
                     android:layout_height="wrap_content"
                     android:singleLine="true"
                     android:password="true"
+                    android:focusable="true"
                     android:maxLength="63"
                     android:imeOptions="flagForceAscii" />
 
@@ -97,7 +99,8 @@
                     style="?android:attr/textAppearanceSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/wifi_show_password" />
+                    android:text="@string/wifi_show_password"
+                    android:nextFocusUp="@+id/password"/>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

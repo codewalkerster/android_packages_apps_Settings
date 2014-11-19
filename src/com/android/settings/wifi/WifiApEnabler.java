@@ -49,6 +49,7 @@ public class WifiApEnabler {
 
     ConnectivityManager mCm;
     private String[] mWifiRegexs;
+	private boolean mWaitForWifi;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -57,6 +58,13 @@ public class WifiApEnabler {
             if (WifiManager.WIFI_AP_STATE_CHANGED_ACTION.equals(action)) {
                 handleWifiApStateChanged(intent.getIntExtra(
                         WifiManager.EXTRA_WIFI_AP_STATE, WifiManager.WIFI_AP_STATE_FAILED));
+            } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
+            	int wifiState = intent.getIntExtra(
+                        WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
+				if (mWaitForWifi && wifiState == WifiManager.WIFI_STATE_ENABLED) {
+					mWaitForWifi = false;
+					mCheckBox.setEnabled(true);
+				}
             } else if (ConnectivityManager.ACTION_TETHER_STATE_CHANGED.equals(action)) {
                 ArrayList<String> available = intent.getStringArrayListExtra(
                         ConnectivityManager.EXTRA_AVAILABLE_TETHER);
@@ -86,6 +94,8 @@ public class WifiApEnabler {
         mIntentFilter = new IntentFilter(WifiManager.WIFI_AP_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(ConnectivityManager.ACTION_TETHER_STATE_CHANGED);
         mIntentFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        mIntentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+		mWaitForWifi = false;
     }
 
     public void resume() {
@@ -100,7 +110,7 @@ public class WifiApEnabler {
     private void enableWifiCheckBox() {
         boolean isAirplaneMode = Settings.Global.getInt(mContext.getContentResolver(),
                 Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
-        if(!isAirplaneMode) {
+        if(!isAirplaneMode && !mWaitForWifi) {
             mCheckBox.setEnabled(true);
         } else {
             mCheckBox.setSummary(mOriginalSummary);
@@ -138,6 +148,7 @@ public class WifiApEnabler {
                 ;
             }
             if (wifiSavedState == 1) {
+				mWaitForWifi = true;
                 mWifiManager.setWifiEnabled(true);
                 Settings.Global.putInt(cr, Settings.Global.WIFI_SAVED_STATE, 0);
             }

@@ -36,6 +36,12 @@
         android:title="@string/bluetooth_settings_title"
         android:icon="@drawable/ic_settings_bluetooth2" />
 
+    <!-- Ethernet -->
+   <header
+        android:id="@+id/ethernet_settings"
+        android:title="@string/eth_setting"
+        android:icon="@drawable/ic_settings_ethernet3"
+        android:fragment="com.android.settings.ethernet.EthernetSettingsAML"/>
     <!-- Data Usage -->
     <header
         android:id="@+id/data_usage_settings"
@@ -103,6 +109,13 @@
         android:icon="@drawable/ic_settings_applications"
         android:title="@string/applications_settings"
         android:id="@+id/application_settings" />
+
+    <!-- AppOps Settings -->
+    <header
+        android:fragment="com.android.settings.applications.AppOpsSummary"
+        android:icon="@drawable/ic_settings_permissions"
+        android:title="@string/permissions_label"
+        android:id="@+id/appops_settings" />        
 
     <!-- Manage users -->
     <header

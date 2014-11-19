@@ -43,6 +43,7 @@ import com.android.settings.ConfirmLockPattern.ConfirmLockPatternFragment;
 import java.util.List;
 
 import libcore.util.MutableBoolean;
+import android.os.SystemProperties;
 
 public class ChooseLockGeneric extends PreferenceActivity {
 
@@ -318,6 +319,8 @@ public class ChooseLockGeneric extends PreferenceActivity {
                         visible = weakBiometricAvailable; // If not available, then don't show it.
                     } else if (KEY_UNLOCK_SET_PATTERN.equals(key)) {
                         enabled = quality <= DevicePolicyManager.PASSWORD_QUALITY_SOMETHING;
+						if(!SystemProperties.getBoolean("keyguard.enable",true))
+							visible = false;             //If keyguard is disable, there doesn't need to show it .
                     } else if (KEY_UNLOCK_SET_PIN.equals(key)) {
                         enabled = quality <= DevicePolicyManager.PASSWORD_QUALITY_NUMERIC;
                     } else if (KEY_UNLOCK_SET_PASSWORD.equals(key)) {
