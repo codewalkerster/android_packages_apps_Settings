@@ -521,10 +521,6 @@ public class Utils {
         return SystemProperties.getBoolean("ro.screen.has.brightness", true);
     }
 
-	public static boolean hwHasBluetooth() {
-		return SystemProperties.getBoolean("hw.has.bluetooth", true);	
-	}
-	
     public static boolean platformHasScreenTimeout() {
         return SystemProperties.getBoolean("ro.screen.has.timeout", true);
     }

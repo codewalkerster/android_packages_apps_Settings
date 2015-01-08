@@ -42,7 +42,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.android.settings.R;
-import com.android.settings.Utils;
 
 /**
  * BluetoothSettings is the Settings screen for Bluetooth configuration and
@@ -71,7 +70,7 @@ public final class BluetoothSettings extends DeviceListPreferenceFragment {
     private boolean mActivityStarted;
 
     private TextView mEmptyView;
-	
+
     private final IntentFilter mIntentFilter;
 
 
@@ -111,30 +110,14 @@ public final class BluetoothSettings extends DeviceListPreferenceFragment {
     @Override
     void addPreferencesForActivity() {
         addPreferencesFromResource(R.xml.bluetooth_settings);
-        setHasOptionsMenu(true);
-    }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        final Activity activity = getActivity();
+        Activity activity = getActivity();
 
         Switch actionBarSwitch = new Switch(activity);
 
         if (activity instanceof PreferenceActivity) {
             PreferenceActivity preferenceActivity = (PreferenceActivity) activity;
-            if (Utils.platformHasMbxUiMode()) {
-                final int padding = activity.getResources().getDimensionPixelSize(
-                        R.dimen.action_bar_switch_padding);
-                actionBarSwitch.setPadding(0, 0, padding, 0);
-                activity.getActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM,
-                        ActionBar.DISPLAY_SHOW_CUSTOM);
-                activity.getActionBar().setCustomView(actionBarSwitch, new ActionBar.LayoutParams(
-                        ActionBar.LayoutParams.WRAP_CONTENT,
-                        ActionBar.LayoutParams.WRAP_CONTENT,
-                        Gravity.CENTER_VERTICAL | Gravity.RIGHT));
-            }
-            else if (preferenceActivity.onIsHidingHeaders() || !preferenceActivity.onIsMultiPane()) {
+            if (preferenceActivity.onIsHidingHeaders() || !preferenceActivity.onIsMultiPane()) {
                 final int padding = activity.getResources().getDimensionPixelSize(
                         R.dimen.action_bar_switch_padding);
                 actionBarSwitch.setPaddingRelative(0, 0, padding, 0);
@@ -148,6 +131,8 @@ public final class BluetoothSettings extends DeviceListPreferenceFragment {
         }
 
         mBluetoothEnabler = new BluetoothEnabler(activity, actionBarSwitch);
+
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -180,16 +165,6 @@ public final class BluetoothSettings extends DeviceListPreferenceFragment {
         }
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        if(Utils.platformHasMbxUiMode()){
-	        final Activity activity = getActivity();
-	        activity.getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_CUSTOM);
-	        activity.getActionBar().setCustomView(null);
-        }
-    }
-	
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         if (mLocalAdapter == null) return;

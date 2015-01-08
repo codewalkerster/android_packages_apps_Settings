@@ -1386,22 +1386,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".bluetooth.BluetoothAuthorizeDialog"
-                android:label="bluetooth_authorize_dialog"
-                android:theme="@*android:style/Theme.Holo.Dialog.Alert"
-                android:excludeFromRecents="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.device.action.ACTION_AUTHORIZE_REQUEST" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <receiver android:name=".bluetooth.BluetoothAuthorizeRequest">
-            <intent-filter>
-                <action android:name="android.bluetooth.device.action.ACTION_AUTHORIZE_REQUEST" />
-            </intent-filter>
-        </receiver>
-
         <!-- NFC settings -->
         <activity android:name="Settings$AndroidBeamSettingsActivity"
                 android:label="@string/android_beam_settings_title"

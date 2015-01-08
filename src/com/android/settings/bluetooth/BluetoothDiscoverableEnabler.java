@@ -58,8 +58,6 @@ final class BluetoothDiscoverableEnabler implements Preference.OnPreferenceClick
     private static final String VALUE_DISCOVERABLE_TIMEOUT_ONE_HOUR = "onehour";
     private static final String VALUE_DISCOVERABLE_TIMEOUT_NEVER = "never";
 
-	private static final String VISIABLE_TO_OTHER_DEVICE="visiable to other device";
-
     static final int DEFAULT_DISCOVERABLE_TIMEOUT = DISCOVERABLE_TIMEOUT_TWO_MINUTES;
 
     private final Context mContext;
@@ -85,11 +83,6 @@ final class BluetoothDiscoverableEnabler implements Preference.OnPreferenceClick
                     handleModeChanged(mode);
                 }
             }
-
-			if (BluetoothDiscoverableEnabler.VISIABLE_TO_OTHER_DEVICE.equals(intent.getAction()))
-				{
-					setEnabled(true);//get the broadcast and make the BT visiable
-				}
         }
     };
 
@@ -107,8 +100,6 @@ final class BluetoothDiscoverableEnabler implements Preference.OnPreferenceClick
         mDiscoveryPreference = discoveryPreference;
         mSharedPreferences = discoveryPreference.getSharedPreferences();
         discoveryPreference.setPersistent(false);
-		mDiscoverable = true;//enable the flag
-		setEnabled(mDiscoverable);//make BT visibale at frist
     }
 
     public void resume() {
@@ -117,7 +108,6 @@ final class BluetoothDiscoverableEnabler implements Preference.OnPreferenceClick
         }
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
-		filter.addAction(BluetoothDiscoverableEnabler.VISIABLE_TO_OTHER_DEVICE);
         mContext.registerReceiver(mReceiver, filter);
         mDiscoveryPreference.setOnPreferenceClickListener(this);
         handleModeChanged(mLocalAdapter.getScanMode());
