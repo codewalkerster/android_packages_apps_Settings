@@ -147,10 +147,7 @@
             <LinearLayout android:id="@+id/password_layout"
                        style="@style/wifi_item" >
                 <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="14sp"
-                        android:textAlignment="viewStart"
+                        style="@style/wifi_item_label"
                         android:text="@string/wifi_password" />
 
                 <EditText android:id="@+id/password"

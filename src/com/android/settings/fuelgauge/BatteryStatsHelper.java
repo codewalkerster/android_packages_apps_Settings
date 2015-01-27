@@ -788,10 +788,9 @@ public class BatteryStatsHelper {
         addBluetoothUsage(uSecNow);
         addIdleUsage(uSecNow); // Not including cellular idle power
         // Don't compute radio usage if it's a wifi-only device
-        /*hide it
         if (!com.android.settings.Utils.isWifiOnly(mActivity)) {
             addRadioUsage(uSecNow);
-        }*/
+        }
     }
 
     private BatterySipper addEntry(String label, DrainType drainType, long time, int iconId,

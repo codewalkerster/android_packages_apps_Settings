@@ -28,8 +28,7 @@
         </Preference>
     </PreferenceCategory>
 
-    <PreferenceCategory android:key="passwords_category"
-			android:title="@string/security_passwords_title"
+    <PreferenceCategory android:title="@string/security_passwords_title"
             android:persistent="false">
 
         <CheckBoxPreference android:key="show_password"

@@ -63,7 +63,6 @@ public class SecuritySettings extends RestrictedSettingsFragment
     private static final String KEY_LOCK_ENABLED = "lockenabled";
     private static final String KEY_VISIBLE_PATTERN = "visiblepattern";
     private static final String KEY_SECURITY_CATEGORY = "security_category";
-	private static final String KEY_PASSWORDS_CATEGORY = "passwords_category";
     private static final String KEY_DEVICE_ADMIN_CATEGORY = "device_admin_category";
     private static final String KEY_LOCK_AFTER_TIMEOUT = "lock_after_timeout";
     private static final String KEY_OWNER_INFO_SETTINGS = "owner_info_settings";
@@ -166,10 +165,7 @@ public class SecuritySettings extends RestrictedSettingsFragment
                     break;
             }
         }
-
-        if(!( Utils.platformHasMbxUiMode() && mLockPatternUtils.isLockScreenDisabled())){
-			addPreferencesFromResource(resid);
-		}
+        addPreferencesFromResource(resid);
 
 
         // Add options for device encryption
@@ -231,9 +227,6 @@ public class SecuritySettings extends RestrictedSettingsFragment
 
         // Append the rest of the settings
         addPreferencesFromResource(R.xml.security_settings_misc);
-		if(Utils.platformHasMbxUiMode()) {
-			removePreference(KEY_PASSWORDS_CATEGORY);
-		}
 
         // Do not display SIM lock for devices without an Icc card
         TelephonyManager tm = TelephonyManager.getDefault();
@@ -275,9 +268,7 @@ public class SecuritySettings extends RestrictedSettingsFragment
         }
 
         // Show password
-		if(!Utils.platformHasMbxUiMode()) {
-        	mShowPassword = (CheckBoxPreference) root.findPreference(KEY_SHOW_PASSWORD);
-		}
+        mShowPassword = (CheckBoxPreference) root.findPreference(KEY_SHOW_PASSWORD);
         mResetCredentials = root.findPreference(KEY_RESET_CREDENTIALS);
 
         // Credential storage

@@ -73,18 +73,13 @@ import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.android.settings.R;
-import com.android.settings.SettingsPreferenceFragment;
-import com.android.settings.wifi.p2p.WifiP2pSettings;
-import com.android.settings.Utils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import android.content.ContentResolver;
-import android.provider.Settings;
 
 /**
  * Two types of UI are provided here.
@@ -177,7 +172,6 @@ public class WifiSettings extends RestrictedSettingsFragment
     // the action bar uses a different set of controls for Setup Wizard
     private boolean mSetupWizardMode;
 
-	private boolean isEthprefer = false;
     /* End of "used in Wifi Setup context" */
 
     public WifiSettings() {
@@ -208,7 +202,6 @@ public class WifiSettings extends RestrictedSettingsFragment
         mSetupWizardMode = getActivity().getIntent().getBooleanExtra(EXTRA_IS_FIRST_RUN, false);
 
         super.onCreate(icicle);
-		isEthprefer = isEthHasFirstPriority();
     }
 
     @Override
@@ -386,7 +379,7 @@ public class WifiSettings extends RestrictedSettingsFragment
             }
         }
 
-    /*    addPreferencesFromResource(R.xml.wifi_settings);
+        addPreferencesFromResource(R.xml.wifi_settings);
 
         if (mSetupWizardMode) {
             getView().setSystemUiVisibility(
@@ -403,7 +396,7 @@ public class WifiSettings extends RestrictedSettingsFragment
 
             if (activity instanceof PreferenceActivity) {
                 PreferenceActivity preferenceActivity = (PreferenceActivity) activity;
-                if(Utils.platformHasMbxUiMode()){
+                if (preferenceActivity.onIsHidingHeaders() || !preferenceActivity.onIsMultiPane()) {
                     final int padding = activity.getResources().getDimensionPixelSize(
                             R.dimen.action_bar_switch_padding);
                     actionBarSwitch.setPaddingRelative(0, 0, padding, 0);
@@ -412,25 +405,13 @@ public class WifiSettings extends RestrictedSettingsFragment
                     activity.getActionBar().setCustomView(actionBarSwitch, new ActionBar.LayoutParams(
                             ActionBar.LayoutParams.WRAP_CONTENT,
                             ActionBar.LayoutParams.WRAP_CONTENT,
-                            Gravity.CENTER_VERTICAL | Gravity.RIGHT));
-                }
-                else{
-                    if (preferenceActivity.onIsHidingHeaders() || !preferenceActivity.onIsMultiPane()) {
-                        final int padding = activity.getResources().getDimensionPixelSize(
-                                R.dimen.action_bar_switch_padding);
-                        actionBarSwitch.setPadding(0, 0, padding, 0);
-                        activity.getActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM,
-                                ActionBar.DISPLAY_SHOW_CUSTOM);
-                        activity.getActionBar().setCustomView(actionBarSwitch, new ActionBar.LayoutParams(
-                                ActionBar.LayoutParams.WRAP_CONTENT,
-                                ActionBar.LayoutParams.WRAP_CONTENT,
-                                Gravity.CENTER_VERTICAL | Gravity.END));
-                    }
+                            Gravity.CENTER_VERTICAL | Gravity.END));
                 }
             }
+
             mWifiEnabler = new WifiEnabler(activity, actionBarSwitch);
         }
-*/
+
         mEmptyView = (TextView) getView().findViewById(android.R.id.empty);
         getListView().setEmptyView(mEmptyView);
 
@@ -438,55 +419,6 @@ public class WifiSettings extends RestrictedSettingsFragment
             registerForContextMenu(getListView());
         }
         setHasOptionsMenu(true);
-    }
-	
-    @Override
-    public void onStart() {
-    	super.onStart();
-		final Activity activity = getActivity();
-        addPreferencesFromResource(R.xml.wifi_settings);
-        if (mSetupWizardMode) {
-            getView().setSystemUiVisibility(
-                    View.STATUS_BAR_DISABLE_BACK |
-                    View.STATUS_BAR_DISABLE_HOME |
-                    View.STATUS_BAR_DISABLE_RECENT |
-                    View.STATUS_BAR_DISABLE_NOTIFICATION_ALERTS |
-                    View.STATUS_BAR_DISABLE_CLOCK);
-        }
-
-        // On/off switch is hidden for Setup Wizard
-        if (!mSetupWizardMode) {
-            Switch actionBarSwitch = new Switch(activity);
-
-            if (activity instanceof PreferenceActivity) {
-                PreferenceActivity preferenceActivity = (PreferenceActivity) activity;
-                if(Utils.platformHasMbxUiMode()){
-                    final int padding = activity.getResources().getDimensionPixelSize(
-                            R.dimen.action_bar_switch_padding);
-                    actionBarSwitch.setPadding(0, 0, padding, 0);
-                    activity.getActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM,
-                            ActionBar.DISPLAY_SHOW_CUSTOM);
-                    activity.getActionBar().setCustomView(actionBarSwitch, new ActionBar.LayoutParams(
-                            ActionBar.LayoutParams.WRAP_CONTENT,
-                            ActionBar.LayoutParams.WRAP_CONTENT,
-                            Gravity.CENTER_VERTICAL | Gravity.RIGHT));
-                }
-                else{
-                    if (preferenceActivity.onIsHidingHeaders() || !preferenceActivity.onIsMultiPane()) {
-                        final int padding = activity.getResources().getDimensionPixelSize(
-                                R.dimen.action_bar_switch_padding);
-                        actionBarSwitch.setPadding(0, 0, padding, 0);
-                        activity.getActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM,
-                                ActionBar.DISPLAY_SHOW_CUSTOM);
-                        activity.getActionBar().setCustomView(actionBarSwitch, new ActionBar.LayoutParams(
-                                ActionBar.LayoutParams.WRAP_CONTENT,
-                                ActionBar.LayoutParams.WRAP_CONTENT,
-                                Gravity.CENTER_VERTICAL | Gravity.END));
-                    }
-                }
-            }
-            mWifiEnabler = new WifiEnabler(activity, actionBarSwitch);
-        }
     }
 
     @Override
@@ -508,16 +440,6 @@ public class WifiSettings extends RestrictedSettingsFragment
         }
         getActivity().unregisterReceiver(mReceiver);
         mScanner.pause();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if(Utils.platformHasMbxUiMode()){
-	        final Activity activity = getActivity();
-	        activity.getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_CUSTOM);
-	        activity.getActionBar().setCustomView(null);
-        }
     }
 
     @Override
@@ -605,8 +527,6 @@ public class WifiSettings extends RestrictedSettingsFragment
                 return true;
             case MENU_ID_SCAN:
                 if (mWifiManager.isWifiEnabled()) {
-                    getPreferenceScreen().removeAll();
-                    addMessagePreference(R.string.wifi_empty_list_wifi_on);
                     mScanner.forceScan();
                 }
                 return true;
@@ -927,26 +847,19 @@ public class WifiSettings extends RestrictedSettingsFragment
             SupplicantState state = (SupplicantState) intent.getParcelableExtra(
                     WifiManager.EXTRA_NEW_STATE);
             if (!mConnected.get() && SupplicantState.isHandshakeState(state)) {
-                 updateConnectionState(WifiInfo.getDetailedStateOf(state));
+                updateConnectionState(WifiInfo.getDetailedStateOf(state));
              } else {
                  // During a connect, we may have the supplicant
                  // state change affect the detailed network state.
                  // Make sure a lost connection is updated as well.
                  updateConnectionState(null);
              }
-             
-             int authState = intent.getIntExtra(WifiManager.EXTRA_SUPPLICANT_ERROR, -1);
-             if( authState == WifiManager.ERROR_AUTHENTICATING ){
-                 updateAccessPoints();		
-             }
-
         } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
             NetworkInfo info = (NetworkInfo) intent.getParcelableExtra(
                     WifiManager.EXTRA_NETWORK_INFO);
             mConnected.set(info.isConnected());
             changeNextButtonState(info.isConnected());
-            if(!(isEthprefer && processWifiEthBothOn()))
-                updateAccessPoints();
+            updateAccessPoints();
             updateConnectionState(info.getDetailedState());
             if (mAutoFinishOnConnection && info.isConnected()) {
                 Activity activity = getActivity();
@@ -959,34 +872,6 @@ public class WifiSettings extends RestrictedSettingsFragment
         } else if (WifiManager.RSSI_CHANGED_ACTION.equals(action)) {
             updateConnectionState(null);
         }
-    }
-
-	private boolean processWifiEthBothOn()
-		{
-		
-		int wifiState = mWifiManager.getWifiState();
-		if(wifiState != WifiManager.WIFI_STATE_ENABLED)
-			return false;        
-		ConnectivityManager connectivity = (ConnectivityManager)
-                    getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo info = connectivity.getNetworkInfo(ConnectivityManager.TYPE_ETHERNET);
-        if(info.isConnected())
-        	{
-				getPreferenceScreen().removeAll();
-				addMessagePreference(R.string.wifi_disable_ethernet_enable);
-				return true;
-        	}
-		return false;
-		}
-
-	private boolean isEthHasFirstPriority()
-		{
-		ContentResolver cr = getContentResolver();
-		int networkPrefSetting = Settings.Secure.getInt(cr, Settings.Secure.NETWORK_PREFERENCE, -1);
-		if(networkPrefSetting == ConnectivityManager.TYPE_ETHERNET)
-			return true;
-		else
-			return false;
     }
 
     private void updateConnectionState(DetailedState state) {

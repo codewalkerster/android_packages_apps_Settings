@@ -59,13 +59,10 @@
             android:targetClass="com.android.phone.MobileNetworkSettings" />
     </PreferenceScreen>
 
-    <!--<Preference
+    <Preference
         android:key="manage_mobile_plan"
         android:title="@string/manage_mobile_plan_title"
         android:persistent="false" />
-<<<<<<< HEAD
-    -->
-=======
 
     <PreferenceScreen
         android:key="wimax_settings"
@@ -76,7 +73,6 @@
             android:targetClass="com.android.settings.wimax.WimaxSettings" />
     </PreferenceScreen>
 
->>>>>>> android-4.4_r1
     <CheckBoxPreference
         android:key="toggle_nsd"
         android:title="@string/nsd_quick_toggle_title"

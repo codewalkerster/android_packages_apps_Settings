@@ -71,7 +71,6 @@ public class WirelessSettings extends RestrictedSettingsFragment
 
     public static final String EXIT_ECM_RESULT = "exit_ecm_result";
     public static final int REQUEST_CODE_EXIT_ECM = 1;
-    public static final boolean isSupportAirplanMode = true ;
 
     private AirplaneModeEnabler mAirplaneModeEnabler;
     private CheckBoxPreference mAirplaneModePreference;
@@ -268,16 +267,11 @@ public class WirelessSettings extends RestrictedSettingsFragment
 
         final Activity activity = getActivity();
         mAirplaneModePreference = (CheckBoxPreference) findPreference(KEY_TOGGLE_AIRPLANE);
-		if(Utils.platformHasMbxUiMode()) {
-			removePreference(KEY_TOGGLE_AIRPLANE);
-		}
         CheckBoxPreference nfc = (CheckBoxPreference) findPreference(KEY_TOGGLE_NFC);
         PreferenceScreen androidBeam = (PreferenceScreen) findPreference(KEY_ANDROID_BEAM_SETTINGS);
         CheckBoxPreference nsd = (CheckBoxPreference) findPreference(KEY_TOGGLE_NSD);
 
-		if(!Utils.platformHasMbxUiMode()&&isSupportAirplanMode) {
-        	mAirplaneModeEnabler = new AirplaneModeEnabler(activity, mAirplaneModePreference);
-		}
+        mAirplaneModeEnabler = new AirplaneModeEnabler(activity, mAirplaneModePreference);
         mNfcEnabler = new NfcEnabler(activity, nfc, androidBeam);
 
         mSmsApplicationPreference = (SmsListPreference) findPreference(KEY_SMS_APPLICATION);
@@ -302,18 +296,14 @@ public class WirelessSettings extends RestrictedSettingsFragment
             if (toggleable == null || !toggleable.contains(Settings.Global.RADIO_WIMAX )
                     && isWimaxEnabled) {
                 Preference ps = (Preference) findPreference(KEY_WIMAX_SETTINGS);
-                if(!Utils.platformHasMbxUiMode()) {
-					ps.setDependency(KEY_TOGGLE_AIRPLANE);
-				}
+                ps.setDependency(KEY_TOGGLE_AIRPLANE);
             }
         }
         protectByRestrictions(KEY_WIMAX_SETTINGS);
 
         // Manually set dependencies for Wifi when not toggleable.
         if (toggleable == null || !toggleable.contains(Settings.Global.RADIO_WIFI)) {
-			if(!Utils.platformHasMbxUiMode()) {
-            	findPreference(KEY_VPN_SETTINGS).setDependency(KEY_TOGGLE_AIRPLANE);
-			}
+            findPreference(KEY_VPN_SETTINGS).setDependency(KEY_TOGGLE_AIRPLANE);
         }
         if (isSecondaryUser) { // Disable VPN
             removePreference(KEY_VPN_SETTINGS);
@@ -326,10 +316,8 @@ public class WirelessSettings extends RestrictedSettingsFragment
 
         // Manually set dependencies for NFC when not toggleable.
         if (toggleable == null || !toggleable.contains(Settings.Global.RADIO_NFC)) {
-			if(!Utils.platformHasMbxUiMode()) {
-            	findPreference(KEY_TOGGLE_NFC).setDependency(KEY_TOGGLE_AIRPLANE);
-            	findPreference(KEY_ANDROID_BEAM_SETTINGS).setDependency(KEY_TOGGLE_AIRPLANE);
-			}
+            findPreference(KEY_TOGGLE_NFC).setDependency(KEY_TOGGLE_AIRPLANE);
+            findPreference(KEY_ANDROID_BEAM_SETTINGS).setDependency(KEY_TOGGLE_AIRPLANE);
         }
 
         // Remove NFC if its not available
@@ -341,7 +329,7 @@ public class WirelessSettings extends RestrictedSettingsFragment
         }
 
         // Remove Mobile Network Settings and Manage Mobile Plan if it's a wifi-only device.
-        if (isSecondaryUser || Utils.isWifiOnly(getActivity()) || Utils.platformHasMbxUiMode()) {
+        if (isSecondaryUser || Utils.isWifiOnly(getActivity())) {
             removePreference(KEY_MOBILE_NETWORK_SETTINGS);
             removePreference(KEY_MANAGE_MOBILE_PLAN);
         }
@@ -368,8 +356,6 @@ public class WirelessSettings extends RestrictedSettingsFragment
             removePreference(KEY_TOGGLE_AIRPLANE);
         }
 
-        
-        
         // Enable Proxy selector settings if allowed.
         Preference mGlobalProxy = findPreference(KEY_PROXY_SETTINGS);
         DevicePolicyManager mDPM = (DevicePolicyManager)
@@ -421,20 +407,13 @@ public class WirelessSettings extends RestrictedSettingsFragment
     @Override
     public void onResume() {
         super.onResume();
-		if(!Utils.platformHasMbxUiMode()&&isSupportAirplanMode) {
-        	mAirplaneModeEnabler.resume();
-		}
+
+        mAirplaneModeEnabler.resume();
         if (mNfcEnabler != null) {
             mNfcEnabler.resume();
         }
         if (mNsdEnabler != null) {
             mNsdEnabler.resume();
-        }
-        if(!isSupportAirplanMode){
-            if(mAirplaneModePreference != null){    
-                getPreferenceScreen().removePreference(mAirplaneModePreference);
-                mAirplaneModePreference = null ;
-            }
         }
     }
 
@@ -450,9 +429,8 @@ public class WirelessSettings extends RestrictedSettingsFragment
     @Override
     public void onPause() {
         super.onPause();
-		if(!Utils.platformHasMbxUiMode()&&isSupportAirplanMode) {
-        	mAirplaneModeEnabler.pause();
-		}
+
+        mAirplaneModeEnabler.pause();
         if (mNfcEnabler != null) {
             mNfcEnabler.pause();
         }
@@ -466,10 +444,8 @@ public class WirelessSettings extends RestrictedSettingsFragment
         if (requestCode == REQUEST_CODE_EXIT_ECM) {
             Boolean isChoiceYes = data.getBooleanExtra(EXIT_ECM_RESULT, false);
             // Set Airplane mode based on the return value and checkbox state
-			if(!Utils.platformHasMbxUiMode()&&isSupportAirplanMode) {
-            	mAirplaneModeEnabler.setAirplaneModeInECM(isChoiceYes,
+            mAirplaneModeEnabler.setAirplaneModeInECM(isChoiceYes,
                     mAirplaneModePreference.isChecked());
-			}
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

@@ -55,9 +55,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
-import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
-import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.preference.PreferenceActivity;
@@ -288,8 +285,7 @@ public class InstalledAppDetails extends Fragment
     }
 
     private void initMoveButton() {
-        if (Environment.isExternalStorageEmulated()
-			&& !SystemProperties.getBoolean("ro.storage.move2sdcard",false)) {
+        if (Environment.isExternalStorageEmulated()) {
             mMoveAppButton.setVisibility(View.INVISIBLE);
             return;
         }
@@ -313,7 +309,6 @@ public class InstalledAppDetails extends Fragment
             mMoveAppButton.setOnClickListener(this);
             mMoveAppButton.setEnabled(true);
         }
-        checkExternalSdcardState();
     }
 
     private boolean isThisASystemPackage() {
@@ -571,20 +566,6 @@ public class InstalledAppDetails extends Fragment
         mSession.resume();
         if (!refreshUi()) {
             setIntentAndFinish(true, true);
-        }
-    }
-
-    private void checkExternalSdcardState(){
-        boolean mMove2RealSdcard = SystemProperties.getBoolean("ro.storage.move2sdcard",false);
-        if(mMove2RealSdcard){
-            String EXETERNAL_SDCARD_PATH = "/storage/external_storage/sdcard1" ;
-            StorageManager mStorageManager = StorageManager.from(getActivity());
-            final String state = mStorageManager.getVolumeState(EXETERNAL_SDCARD_PATH);
-            Log.d(TAG,"external sdcard state:"+state);
-            if(!Environment.MEDIA_MOUNTED.equals(state)){
-                mMoveAppButton.setEnabled(false);
-                mMoveAppButton.setFocusable(false);
-            }  
         }
     }
 

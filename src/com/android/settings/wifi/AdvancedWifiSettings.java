@@ -36,8 +36,6 @@ import android.widget.Toast;
 import com.android.settings.R;
 import com.android.settings.SettingsPreferenceFragment;
 import com.android.settings.Utils;
-import com.android.settings.DisplaySettings;
-import android.os.SystemProperties;
 
 public class AdvancedWifiSettings extends SettingsPreferenceFragment
         implements Preference.OnPreferenceChangeListener {
@@ -59,9 +57,6 @@ public class AdvancedWifiSettings extends SettingsPreferenceFragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.wifi_advanced_settings);
-		if(isMBXDevice()) { 
-			removePreference(KEY_SLEEP_POLICY);
-		}
     }
 
     @Override
@@ -242,17 +237,6 @@ public class AdvancedWifiSettings extends SettingsPreferenceFragment
         String ipAddress = Utils.getWifiIpAddresses(getActivity());
         wifiIpAddressPref.setSummary(ipAddress == null ?
                 getActivity().getString(R.string.status_unavailable) : ipAddress);
-    }
-
-    private static boolean isMBXDevice()
-    {
-            String mode = SystemProperties.get("ro.platform.has.mbxuimode");
-            if("true".equalsIgnoreCase(mode))
-            {
-                    return true;
-            }
-                    
-            return false;
     }
 
 }

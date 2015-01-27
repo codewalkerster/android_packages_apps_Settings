@@ -335,7 +335,7 @@ public class ManageApplications extends Fragment implements
                 if (mContainerService != null) {
                     try {
                         final long[] stats = mContainerService.getFileSystemStats(
-                                Environment.getLegacyExternalStorageDirectory().getPath());
+                                Environment.getExternalStorageDirectory().getPath());
                         mTotalStorage = stats[0];
                         mFreeStorage = stats[1];
                     } catch (RemoteException e) {

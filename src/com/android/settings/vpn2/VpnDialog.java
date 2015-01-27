@@ -35,7 +35,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
-import com.android.settings.Utils;
+
 import java.net.InetAddress;
 
 class VpnDialog extends AlertDialog implements TextWatcher,
@@ -99,17 +99,6 @@ class VpnDialog extends AlertDialog implements TextWatcher,
         mIpsecServerCert = (Spinner) mView.findViewById(R.id.ipsec_server_cert);
         mSaveLogin = (CheckBox) mView.findViewById(R.id.save_login);
 
-		//remote can't move focus to some views ,just add for remote control which mbx use it
-        if(Utils.platformHasMbxUiMode())
-        	{
-				mName.setNextFocusDownId(R.id.type);
-				mType.setNextFocusDownId(R.id.server);
-				mServer.setNextFocusDownId(R.id.mppe);
-				mMppe.setNextFocusUpId(R.id.server);
-				mServer.setNextFocusUpId(R.id.type);
-				mType.setNextFocusUpId(R.id.name);
-        	}
-		
         // Second, copy values from the profile.
         mName.setText(mProfile.name);
         mType.setSelection(mProfile.type);

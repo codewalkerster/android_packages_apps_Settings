@@ -288,9 +288,7 @@ public class Settings extends PreferenceActivity
         if (listAdapter instanceof HeaderAdapter) {
             ((HeaderAdapter) listAdapter).resume();
         }
-        //if(!Utils.platformHasMbxUiMode()){
-            invalidateHeaders();
-        //}
+        invalidateHeaders();
 
         registerReceiver(mBatteryInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
     }
@@ -571,11 +569,6 @@ public class Settings extends PreferenceActivity
                 if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
                     target.remove(i);
                 }
-            } else if(id == R.id.battery_settings){
-				// Remove Battery Settings if Battery service is not available.
-                if (Utils.hwNoBattery()) {
-                    target.remove(header);
-                }
 			} else if (id == R.id.ethernet_settings) {
                 if (!Utils.hwHasEthernet()) {
                     target.remove(header);
@@ -607,7 +600,7 @@ public class Settings extends PreferenceActivity
             } else if (id == R.id.user_settings) {
                 if (!UserHandle.MU_ENABLED
                         || !UserManager.supportsMultipleUsers()
-                        || Utils.isMonkeyRunning() || Utils.platformHasMbxUiMode()) {
+                        || Utils.isMonkeyRunning()) {
                     target.remove(i);
                 }
             } else if (id == R.id.nfc_payment_settings) {
@@ -629,23 +622,6 @@ public class Settings extends PreferenceActivity
                 if (um.hasUserRestriction(UserManager.DISALLOW_MODIFY_ACCOUNTS)) {
                     target.remove(i);
                 }
-            }else if(id == R.id.appops_settings){
-                String opsEnble = SystemProperties.get("ro.permissions.settings", "false");
-                if(opsEnble.equals("false")){
-                    target.remove(i);
-                }
-            }else if(id == R.id.sound_settings){
-            	if(Utils.hwNoSoundPartition()){
-            		target.remove(i);
-            	}
-            }else if(id == R.id.location_settings){
-            	if(Utils.hwNoLocation()){
-            		target.remove(i);
-            	}
-            }else if(id == R.id.print_settings){
-            	if(Utils.platformHasTvUiMode()){
-            		target.remove(i);
-            	}
             }
 
             if (i < target.size() && target.get(i) == header

@@ -26,10 +26,8 @@ import android.app.Fragment;
 import android.app.admin.DevicePolicyManager;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.preference.PreferenceActivity;
-import android.os.SystemClock;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -80,9 +78,7 @@ public class ConfirmLockPassword extends PreferenceActivity {
         private PasswordEntryKeyboardHelper mKeyboardHelper;
         private PasswordEntryKeyboardView mKeyboardView;
         private Button mContinueButton;
-        private int mNumWrongConfirmAttempts;
-        private CountDownTimer mCountdownTimer;
-        private boolean mIsAlpha;
+
 
         // required constructor for fragments
         public ConfirmLockPasswordFragment() {
@@ -113,27 +109,29 @@ public class ConfirmLockPassword extends PreferenceActivity {
 
             mKeyboardView = (PasswordEntryKeyboardView) view.findViewById(R.id.keyboard);
             mHeaderText = (TextView) view.findViewById(R.id.headerText);
-            mIsAlpha = DevicePolicyManager.PASSWORD_QUALITY_ALPHABETIC == storedQuality
+            final boolean isAlpha = DevicePolicyManager.PASSWORD_QUALITY_ALPHABETIC == storedQuality
                     || DevicePolicyManager.PASSWORD_QUALITY_ALPHANUMERIC == storedQuality
                     || DevicePolicyManager.PASSWORD_QUALITY_COMPLEX == storedQuality;
-            mHeaderText.setText(getDefaultHeader());
+            mHeaderText.setText(isAlpha ? R.string.lockpassword_confirm_your_password_header
+                    : R.string.lockpassword_confirm_your_pin_header);
 
             final Activity activity = getActivity();
             mKeyboardHelper = new PasswordEntryKeyboardHelper(activity,
                     mKeyboardView, mPasswordEntry);
-            mKeyboardHelper.setKeyboardMode(mIsAlpha ?
+            mKeyboardHelper.setKeyboardMode(isAlpha ?
                     PasswordEntryKeyboardHelper.KEYBOARD_MODE_ALPHA
                     : PasswordEntryKeyboardHelper.KEYBOARD_MODE_NUMERIC);
             mKeyboardView.requestFocus();
 
             int currentType = mPasswordEntry.getInputType();
-            mPasswordEntry.setInputType(mIsAlpha ? currentType
+            mPasswordEntry.setInputType(isAlpha ? currentType
                     : (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD));
 
             // Update the breadcrumb (title) if this is embedded in a PreferenceActivity
             if (activity instanceof PreferenceActivity) {
                 final PreferenceActivity preferenceActivity = (PreferenceActivity) activity;
-                int id = getDefaultHeader();
+                int id = isAlpha ? R.string.lockpassword_confirm_your_password_header
+                        : R.string.lockpassword_confirm_your_pin_header;
                 CharSequence title = getText(id);
                 preferenceActivity.showBreadCrumbs(title, title);
             }
@@ -141,19 +139,10 @@ public class ConfirmLockPassword extends PreferenceActivity {
             return view;
         }
 
-        private int getDefaultHeader() {
-            return mIsAlpha ? R.string.lockpassword_confirm_your_password_header
-                    : R.string.lockpassword_confirm_your_pin_header;
-        }
-
         @Override
         public void onPause() {
             super.onPause();
             mKeyboardView.requestFocus();
-            if (mCountdownTimer != null) {
-                mCountdownTimer.cancel();
-                mCountdownTimer = null;
-            }
         }
 
         @Override
@@ -161,10 +150,6 @@ public class ConfirmLockPassword extends PreferenceActivity {
             // TODO Auto-generated method stub
             super.onResume();
             mKeyboardView.requestFocus();
-            long deadline = mLockPatternUtils.getLockoutAttemptDeadline();
-            if (deadline != 0) {
-                handleAttemptLockout(deadline);
-            }
         }
 
         private void handleNext() {
@@ -177,38 +162,8 @@ public class ConfirmLockPassword extends PreferenceActivity {
                 getActivity().setResult(RESULT_OK, intent);
                 getActivity().finish();
             } else {
-                if (++mNumWrongConfirmAttempts >= LockPatternUtils.FAILED_ATTEMPTS_BEFORE_TIMEOUT) {
-                    long deadline = mLockPatternUtils.setLockoutAttemptDeadline();
-                    handleAttemptLockout(deadline);
-                } else {
-                    showError(R.string.lockpattern_need_to_unlock_wrong);
-                }
+                showError(R.string.lockpattern_need_to_unlock_wrong);
             }
-        }
-
-        private void handleAttemptLockout(long elapsedRealtimeDeadline) {
-            long elapsedRealtime = SystemClock.elapsedRealtime();
-            showError(R.string.lockpattern_too_many_failed_confirmation_attempts_header, 0);
-            mPasswordEntry.setEnabled(false);
-            mCountdownTimer = new CountDownTimer(
-                    elapsedRealtimeDeadline - elapsedRealtime,
-                    LockPatternUtils.FAILED_ATTEMPT_COUNTDOWN_INTERVAL_MS) {
-
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    final int secondsCountdown = (int) (millisUntilFinished / 1000);
-                    mHeaderText.setText(getString(
-                            R.string.lockpattern_too_many_failed_confirmation_attempts_footer,
-                            secondsCountdown));
-                }
-
-                @Override
-                public void onFinish() {
-                    mPasswordEntry.setEnabled(true);
-                    mHeaderText.setText(getDefaultHeader());
-                    mNumWrongConfirmAttempts = 0;
-                }
-            }.start();
         }
 
         public void onClick(View v) {
@@ -225,23 +180,14 @@ public class ConfirmLockPassword extends PreferenceActivity {
         }
 
         private void showError(int msg) {
-            showError(msg, ERROR_MESSAGE_TIMEOUT);
-        }
-
-        private final Runnable mResetErrorRunnable = new Runnable() {
-            public void run() {
-                mHeaderText.setText(getDefaultHeader());
-            }
-        };
-
-        private void showError(int msg, long timeout) {
             mHeaderText.setText(msg);
             mHeaderText.announceForAccessibility(mHeaderText.getText());
             mPasswordEntry.setText(null);
-            mHandler.removeCallbacks(mResetErrorRunnable);
-            if (timeout != 0) {
-                mHandler.postDelayed(mResetErrorRunnable, timeout);
-            }
+            mHandler.postDelayed(new Runnable() {
+                public void run() {
+                    mHeaderText.setText(R.string.lockpassword_confirm_your_password_header);
+                }
+            }, ERROR_MESSAGE_TIMEOUT);
         }
 
         // {@link OnEditorActionListener} methods.

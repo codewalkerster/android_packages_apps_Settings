@@ -133,7 +133,7 @@ public class SettingsPreferenceFragment extends PreferenceFragment implements Di
     public void onDetach() {
         if (isRemoving()) {
             if (mDialogFragment != null) {
-                mDialogFragment.dismissAllowingStateLoss();
+                mDialogFragment.dismiss();
                 mDialogFragment = null;
             }
         }

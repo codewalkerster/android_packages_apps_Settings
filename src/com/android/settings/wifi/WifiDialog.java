@@ -59,7 +59,6 @@ class WifiDialog extends AlertDialog implements WifiConfigUiBase {
         /* During creation, the submit button can be unavailable to determine
          * visibility. Right after creation, update button visibility */
         mController.enableSubmitIfAppropriate();
-        mController.setSubmitDefaultNeighbor();
     }
 
     @Override

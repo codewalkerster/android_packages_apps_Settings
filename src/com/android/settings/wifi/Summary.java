@@ -34,8 +34,6 @@ class Summary {
     }
 
     static String get(Context context, DetailedState state) {
-		if (state == DetailedState.VERIFYING_POOR_LINK || state == DetailedState.CAPTIVE_PORTAL_CHECK)
-			state = DetailedState.CONNECTED;
         return get(context, null, state);
     }
 }

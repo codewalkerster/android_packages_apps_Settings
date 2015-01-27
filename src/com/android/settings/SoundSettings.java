@@ -47,14 +47,6 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import android.os.SystemProperties;
 
 import java.util.List;
 
@@ -83,8 +75,6 @@ public class SoundSettings extends SettingsPreferenceFragment implements
     private static final String KEY_DOCK_AUDIO_SETTINGS = "dock_audio";
     private static final String KEY_DOCK_SOUNDS = "dock_sounds";
     private static final String KEY_DOCK_AUDIO_MEDIA_ENABLED = "dock_audio_media_enabled";
-    private static final String STR_DIGIT_AUDIO_OUTPUT = "ubootenv.var.digitaudiooutput";
-    private static String DigitalRawFile = "/sys/class/audiodsp/digital_raw";
 
     private static final String[] NEED_VOICE_CAPABILITY = {
             KEY_RINGTONE, KEY_DTMF_TONE, KEY_CATEGORY_CALLS,
@@ -111,10 +101,6 @@ public class SoundSettings extends SettingsPreferenceFragment implements
     private CheckBoxPreference mDockSounds;
     private Intent mDockIntent;
     private CheckBoxPreference mDockAudioMediaEnabled;
-
-    private CharSequence[] mEntryValues;
-    private int index_entry;
-    private int sel_index;
 
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -182,14 +168,9 @@ public class SoundSettings extends SettingsPreferenceFragment implements
         mHapticFeedback.setChecked(Settings.System.getInt(resolver,
                 Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) != 0);
         mLockSounds = (CheckBoxPreference) findPreference(KEY_LOCK_SOUNDS);
-		if(Utils.platformHasMbxUiMode()) {
-			removePreference(KEY_LOCK_SOUNDS);
-		}
-		else {
-			mLockSounds.setPersistent(false);
-			mLockSounds.setChecked(Settings.System.getInt(resolver,
+        mLockSounds.setPersistent(false);
+        mLockSounds.setChecked(Settings.System.getInt(resolver,
                 Settings.System.LOCKSCREEN_SOUNDS_ENABLED, 1) != 0);
-		}
 
         mRingtonePreference = findPreference(KEY_RINGTONE);
         mNotificationPreference = findPreference(KEY_NOTIFICATION_SOUND);
@@ -243,7 +224,8 @@ public class SoundSettings extends SettingsPreferenceFragment implements
                             MSG_UPDATE_NOTIFICATION_SUMMARY);
                 }
             }
-        };		
+        };
+
         initDockSettings();
     }
 
@@ -369,18 +351,8 @@ public class SoundSettings extends SettingsPreferenceFragment implements
                 Log.e(TAG, "could not persist emergency tone setting", e);
             }
         }
-        return true;
-    }
 
-	private int findIndexOfEntry(String value, CharSequence[] entry) {
-        if (value != null && entry != null) {
-            for (int i = entry.length - 1; i >= 0; i--) {
-                if (entry[i].equals(value)) {
-                    return i;
-                }
-            }
-        }
-        return 0;  //set PCM as default
+        return true;
     }
 
     @Override
