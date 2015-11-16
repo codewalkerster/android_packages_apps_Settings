@@ -114,6 +114,13 @@ public final class BluetoothPermissionRequest extends BroadcastReceiver {
                             context, deviceAddress)) {
                 context.startActivity(connectionAccessIntent);
             } else {
+                // Acquire wakelock so that LCD comes up since screen is off
+                PowerManager.WakeLock wakeLock = null;
+                wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK |
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE,
+                        "ConnectionAccessActivity");
+                wakeLock.setReferenceCounted(false);
+                wakeLock.acquire();
                 // Put up a notification that leads to the dialog
 
                 // Create an intent triggered by clicking on the
@@ -165,6 +172,7 @@ public final class BluetoothPermissionRequest extends BroadcastReceiver {
 
                 notificationManager.notify(getNotificationTag(mRequestType), NOTIFICATION_ID,
                         notification);
+                wakeLock.release();
             }
         } else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL)) {
             // Remove the notification
@@ -201,6 +209,10 @@ public final class BluetoothPermissionRequest extends BroadcastReceiver {
         }
 
         LocalBluetoothManager bluetoothManager = LocalBluetoothManager.getInstance(mContext);
+        if (bluetoothManager == null) {
+            Log.e(TAG, "Error: Can't get LocalBluetoothManager");
+            return false;
+        }
         CachedBluetoothDeviceManager cachedDeviceManager =
             bluetoothManager.getCachedDeviceManager();
         CachedBluetoothDevice cachedDevice = cachedDeviceManager.findDevice(mDevice);
@@ -216,7 +228,8 @@ public final class BluetoothPermissionRequest extends BroadcastReceiver {
 
             if (phonebookPermission == CachedBluetoothDevice.ACCESS_UNKNOWN) {
                 // Leave 'processed' as false.
-            } else if (phonebookPermission == CachedBluetoothDevice.ACCESS_ALLOWED) {
+            } else if (phonebookPermission == CachedBluetoothDevice.ACCESS_ALLOWED ||
+                phonebookPermission == CachedBluetoothDevice.PBAP_CONNECT_RECEIVED) {
                 sendReplyIntentToReceiver(true);
                 processed = true;
             } else if (phonebookPermission == CachedBluetoothDevice.ACCESS_REJECTED) {
