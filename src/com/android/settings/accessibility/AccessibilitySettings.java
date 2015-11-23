@@ -88,6 +88,8 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
             "toggle_lock_screen_rotation_preference";
     private static final String TOGGLE_SPEAK_PASSWORD_PREFERENCE =
             "toggle_speak_password_preference";
+    private static final String TOGGLE_LARGE_POINTER_ICON =
+            "toggle_large_pointer_icon";
     private static final String SELECT_LONG_PRESS_TIMEOUT_PREFERENCE =
             "select_long_press_timeout_preference";
     private static final String ENABLE_ACCESSIBILITY_GESTURE_PREFERENCE_SCREEN =
@@ -186,6 +188,7 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
     private SwitchPreference mTogglePowerButtonEndsCallPreference;
     private SwitchPreference mToggleLockScreenRotationPreference;
     private SwitchPreference mToggleSpeakPasswordPreference;
+    private SwitchPreference mToggleLargePointerIconPreference;
     private ListPreference mSelectLongPressTimeoutPreference;
     private Preference mNoServicesMessagePreference;
     private PreferenceScreen mCaptioningPreferenceScreen;
@@ -283,6 +286,9 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
         } else if (mToggleSpeakPasswordPreference == preference) {
             handleToggleSpeakPasswordPreferenceClick();
             return true;
+        } else if (mToggleLargePointerIconPreference == preference) {
+            handleToggleLargePointerIconPreferenceClick();
+            return true;
         } else if (mGlobalGesturePreferenceScreen == preference) {
             handleToggleEnableAccessibilityGesturePreferenceClick();
             return true;
@@ -325,6 +331,12 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
         Settings.Secure.putInt(getContentResolver(),
                 Settings.Secure.ACCESSIBILITY_SPEAK_PASSWORD,
                 mToggleSpeakPasswordPreference.isChecked() ? 1 : 0);
+    }
+
+    private void handleToggleLargePointerIconPreferenceClick() {
+        Settings.Secure.putInt(getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_LARGE_POINTER_ICON,
+                mToggleLargePointerIconPreference.isChecked() ? 1 : 0);
     }
 
     private void handleToggleEnableAccessibilityGesturePreferenceClick() {
@@ -385,6 +397,10 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
         // Speak passwords.
         mToggleSpeakPasswordPreference =
                 (SwitchPreference) findPreference(TOGGLE_SPEAK_PASSWORD_PREFERENCE);
+
+        // Large pointer icon.
+        mToggleLargePointerIconPreference =
+                (SwitchPreference) findPreference(TOGGLE_LARGE_POINTER_ICON);
 
         // Long press timeout.
         mSelectLongPressTimeoutPreference =
@@ -567,6 +583,10 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
         final boolean speakPasswordEnabled = Settings.Secure.getInt(getContentResolver(),
                 Settings.Secure.ACCESSIBILITY_SPEAK_PASSWORD, 0) != 0;
         mToggleSpeakPasswordPreference.setChecked(speakPasswordEnabled);
+
+        // Large pointer icon.
+        mToggleLargePointerIconPreference.setChecked(Settings.Secure.getInt(getContentResolver(),
+                Settings.Secure.ACCESSIBILITY_LARGE_POINTER_ICON, 0) != 0);
 
         // Long press timeout.
         final int longPressTimeout = Settings.Secure.getInt(getContentResolver(),
