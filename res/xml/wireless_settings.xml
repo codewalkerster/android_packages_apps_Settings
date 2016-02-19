@@ -53,6 +53,10 @@
         android:title="@string/vpn_settings_title" />
 
     <PreferenceScreen
+        android:fragment="com.android.settings.ethernet.EthernetSettings"
+        android:key="ethernet_settings"
+        android:title="@string/ethernet_settings_title" />
+    <PreferenceScreen
         android:key="mobile_network_settings"
         android:title="@string/network_settings_title"
         settings:keywords="@string/keywords_more_mobile_networks"
