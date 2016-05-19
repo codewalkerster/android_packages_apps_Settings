@@ -1,13 +1,16 @@
 package com.android.settings.ethernet;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
 import android.net.EthernetManager;
 import android.net.IpConfiguration;
 import android.net.IpConfiguration.IpAssignment;
 import android.net.LinkAddress;
+import android.net.LinkProperties;
 import android.net.NetworkUtils;
 import android.net.StaticIpConfiguration;
 import android.os.Bundle;
+import android.os.SystemProperties;
 import android.preference.Preference;
 import android.preference.PreferenceScreen;
 import android.preference.CheckBoxPreference;
@@ -20,6 +23,8 @@ import android.widget.Toast;
 import android.text.TextUtils;
 
 import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 
 import com.android.internal.logging.MetricsLogger;
 import com.android.settings.SettingsPreferenceFragment;
@@ -64,6 +69,7 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
     private Context mContext;
     private IpConfiguration mIpConfiguration;
     private EthernetManager mEthernetManager;
+    private ConnectivityManager mConnectivityManager;
 
     public EthernetStaticIP() {
     }
@@ -80,8 +86,8 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
         mContext = getActivity();
 
         mEthernetManager = (EthernetManager)mContext.getSystemService(Context.ETHERNET_SERVICE);
-
-        mIpConfiguration = new IpConfiguration();
+        mConnectivityManager = (ConnectivityManager) mContext.getSystemService(
+                Context.CONNECTIVITY_SERVICE);
 
         addPreferencesFromResource(R.xml.ethernet_static_ip);
 
@@ -144,8 +150,8 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
         switch (item.getItemId()) {
 
         case MENU_ITEM_SAVE:
-            saveIpSettingsInfo();
-            finish();
+            if (saveIpSettingsInfo())
+                finish();
             return true;
         case MENU_ITEM_CANCEL:
             finish();
@@ -158,9 +164,39 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
     private void updateIpSettingsInfo() {
         LOG("Static IP status updateIpSettingsInfo");
         mUseStaticIpCheckBox.setChecked(mIpConfiguration.getIpAssignment() == IpAssignment.STATIC);
+
+        StaticIpConfiguration configStatic = mIpConfiguration.getStaticIpConfiguration();
+
+        if (mIpConfiguration.getIpAssignment() == IpAssignment.STATIC) {
+            int i = 0;
+            String DNS1 = "8.8.8.8";
+            String DNS2 = "8.8.4.4";
+            if (configStatic.dnsServers != null) {
+                for (InetAddress dnsServer : configStatic.dnsServers) {
+                    if (i == 0)
+                        DNS1 = dnsServer.getHostAddress();
+                    else if (i == 1)
+                        DNS2 = dnsServer.getHostAddress();
+                    i++;
+                }
+            }
+            InetAddress address = configStatic.ipAddress.getAddress();
+            if (address instanceof Inet4Address) {
+                setStringSummary(KEY_IP_ADDRESS, address.getHostAddress());
+            }
+            setStringSummary(KEY_GATEWAY, configStatic.gateway.getHostAddress());
+            setStringSummary(KEY_DNS1, DNS1);
+            setStringSummary(KEY_DNS2, DNS2);
+        } else {
+            setStringSummary(KEY_IP_ADDRESS, getEthernetIpAddress());
+            setStringSummary(KEY_GATEWAY, SystemProperties.get("dhcp.eth0.gateway"));
+            setStringSummary(KEY_DNS1, SystemProperties.get("net.dns1"));
+            setStringSummary(KEY_DNS2, SystemProperties.get("net.dns2"));
+        }
+        setStringSummary(KEY_NETWORK_PREFIX_LEGHT, Integer.toString(getPrefixLength()));
     }
 
-    private void saveIpSettingsInfo() {
+    private boolean saveIpSettingsInfo() {
         if (mUseStaticIpCheckBox.isChecked()) {
 
             mIpConfiguration.setIpAssignment(IpAssignment.STATIC);
@@ -170,75 +206,81 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
 
             EditTextPreference preference =
                 (EditTextPreference)findPreference(KEY_IP_ADDRESS);
-            String ipAddr = preference.getText();
+            String ipAddr = preference.getSummary().toString();
 
-            if (TextUtils.isEmpty(ipAddr))
-                return;
-
-            Log.e(TAG, "ipAddr = " + ipAddr);
+            if (TextUtils.isEmpty(ipAddr)) {
+                Toast.makeText(getActivity(),
+                        "IP address is empty", Toast.LENGTH_LONG).show();
+                return false;
+            }
 
             Inet4Address inetAddr = null;
             try {
                 inetAddr = (Inet4Address) NetworkUtils.numericToInetAddress(ipAddr);
             } catch (IllegalArgumentException|ClassCastException e) {
-                return;
+                return false;
             }
 
             preference = (EditTextPreference)findPreference(KEY_NETWORK_PREFIX_LEGHT);
             int networkPrefixLength = -1;
             try {
-                networkPrefixLength = Integer.parseInt(preference.getText());
+                networkPrefixLength = Integer.parseInt(preference.getSummary().toString());
                 if (networkPrefixLength < 0 || networkPrefixLength > 32) {
-                    return;
+                    Toast.makeText(getActivity(),
+                        "Network prefix length is empty", Toast.LENGTH_LONG).show();
+                    return false;
                 }
                 staticConfig.ipAddress = new LinkAddress(inetAddr, networkPrefixLength);
             } catch (NumberFormatException e) {
-                return;
+                return false;
             }
 
-            LOG("networkPrefixLength = " + networkPrefixLength);
-
             preference = (EditTextPreference)findPreference(KEY_GATEWAY);
-            String gateway = preference.getText();
+            String gateway = preference.getSummary().toString();
             if (!TextUtils.isEmpty(gateway)) {
                 try {
                     staticConfig.gateway =
                             (Inet4Address) NetworkUtils.numericToInetAddress(gateway);
                 } catch (IllegalArgumentException|ClassCastException e) {
-                    return;
+                    return false;
                 }
+            } else {
+                Toast.makeText(getActivity(),
+                        "Gateway is empty", Toast.LENGTH_LONG).show();
+                return false;
             }
 
-            LOG("gateway = " + gateway);
-
             preference = (EditTextPreference)findPreference(KEY_DNS1);
-            String dns1 = preference.getText();
+            String dns1 = preference.getSummary().toString();
             if (!TextUtils.isEmpty(dns1)) {
                 try {
                     staticConfig.dnsServers.add(
                             (Inet4Address) NetworkUtils.numericToInetAddress(dns1));
                 } catch (IllegalArgumentException|ClassCastException e) {
-                    return;
+                    return false;
                 }
+            } else {
+                Toast.makeText(getActivity(),
+                        "DNS1 is empty", Toast.LENGTH_LONG).show();
+                return false;
             }
-            LOG("DNS1 = " + dns1);
 
             preference = (EditTextPreference)findPreference(KEY_DNS2);
-            String dns2 = preference.getText();
+            String dns2 = preference.getSummary().toString();
             if (!TextUtils.isEmpty(dns2)) {
                 try {
                     staticConfig.dnsServers.add(
                             (Inet4Address) NetworkUtils.numericToInetAddress(dns2));
                 } catch (IllegalArgumentException|ClassCastException e) {
-                    return;
+                    return false;
                 }
             }
-            LOG("DNS2 = " + dns2);
         } else {
             mIpConfiguration.setIpAssignment(IpAssignment.DHCP);
             mIpConfiguration.setStaticIpConfiguration(null);
         }
         mEthernetManager.setConfiguration(mIpConfiguration);
+        return true;
     }
 
     @Override
@@ -317,4 +359,49 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
 
         return numBlocks == 4;
     }
+
+    private void setStringSummary(String preference, String value) {
+        try {
+            findPreference(preference).setSummary(value);
+        } catch (RuntimeException e) {
+            findPreference(preference).setSummary("");
+        }
+    }
+
+    public String getEthernetIpAddress() {
+        LinkProperties linkProperties =
+                mConnectivityManager.getLinkProperties(ConnectivityManager.TYPE_ETHERNET);
+
+        if (linkProperties == null) {
+            return "";
+        }
+        for (LinkAddress linkAddress: linkProperties.getAllLinkAddresses()) {
+            InetAddress address = linkAddress.getAddress();
+            if (address instanceof Inet4Address) {
+                return address.getHostAddress();
+            }
+        }
+
+        // IPv6 address will not be shown like WifiInfo internally does.
+        return "";
+    }
+
+    public int getPrefixLength() {
+        LinkProperties linkProperties =
+                mConnectivityManager.getLinkProperties(ConnectivityManager.TYPE_ETHERNET);
+
+        if (linkProperties == null) {
+            return 24;
+        }
+        for (LinkAddress linkAddress: linkProperties.getAllLinkAddresses()) {
+            InetAddress address = linkAddress.getAddress();
+            if (address instanceof Inet4Address) {
+                return linkAddress.getPrefixLength();
+            }
+        }
+
+        // IPv6 address will not be shown like WifiInfo internally does.
+        return 24;
+    }
+
 }
