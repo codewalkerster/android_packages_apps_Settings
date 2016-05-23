@@ -264,7 +264,6 @@ public class SettingsActivity extends Activity
             R.id.display_settings,
             R.id.storage_settings,
             R.id.application_settings,
-            R.id.battery_settings,
             R.id.personal_section,
             R.id.location_settings,
             R.id.security_settings,
@@ -1255,12 +1254,6 @@ public class SettingsActivity extends Activity
                 } else if (id == R.id.data_usage_settings) {
                     // Remove data usage when kernel module not enabled
                     if (!Utils.isBandwidthControlEnabled()) {
-                        removeTile = true;
-                    }
-                } else if (id == R.id.battery_settings) {
-                    // Remove battery settings when battery is not available. (e.g. TV)
-
-                    if (!mBatteryPresent) {
                         removeTile = true;
                     }
                 } else if (id == R.id.home_settings) {

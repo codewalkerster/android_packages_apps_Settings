@@ -118,15 +118,8 @@
                 android:icon="@drawable/ic_settings_storage"
                 />
 
-        <!-- Battery -->
-        <dashboard-tile
-                android:id="@+id/battery_settings"
-                android:title="@string/power_usage_summary_title"
-                android:fragment="com.android.settings.fuelgauge.PowerUsageSummary"
-                android:icon="@drawable/ic_settings_battery"
-                />
-
         <!-- Memory -->
+        <!-- Application Settings -->
         <dashboard-tile
                 android:id="@+id/manage_memory"
                 android:title="@string/memory_settings_title"
