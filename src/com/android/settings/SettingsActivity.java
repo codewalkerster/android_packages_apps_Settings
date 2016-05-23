@@ -87,9 +87,6 @@ import com.android.settings.deviceinfo.SimStatus;
 import com.android.settings.deviceinfo.Status;
 import com.android.settings.deviceinfo.StorageSettings;
 import com.android.settings.display.NightDisplaySettings;
-import com.android.settings.fuelgauge.BatterySaverSettings;
-import com.android.settings.fuelgauge.PowerUsageDetail;
-import com.android.settings.fuelgauge.PowerUsageSummary;
 import com.android.settings.gestures.GestureSettings;
 import com.android.settings.inputmethod.AvailableVirtualKeyboardFragment;
 import com.android.settings.inputmethod.InputMethodAndLanguageSettings;
@@ -247,7 +244,6 @@ public class SettingsActivity extends SettingsDrawerActivity
             Settings.DisplaySettingsActivity.class.getName(),
             Settings.StorageSettingsActivity.class.getName(),
             Settings.ManageApplicationsActivity.class.getName(),
-            Settings.PowerUsageSummaryActivity.class.getName(),
             Settings.GestureSettingsActivity.class.getName(),
             Settings.ScreenshotSettingsActivity.class.getName(),
             //personal_section
@@ -307,7 +303,6 @@ public class SettingsActivity extends SettingsDrawerActivity
             DevelopmentSettings.class.getName(),
             AndroidBeam.class.getName(),
             WifiDisplaySettings.class.getName(),
-            PowerUsageSummary.class.getName(),
             AccountSyncSettings.class.getName(),
             AccountSettings.class.getName(),
             GestureSettings.class.getName(),
@@ -331,7 +326,6 @@ public class SettingsActivity extends SettingsDrawerActivity
             ChooseLockPassword.ChooseLockPasswordFragment.class.getName(),
             ChooseLockPattern.ChooseLockPatternFragment.class.getName(),
             InstalledAppDetails.class.getName(),
-            BatterySaverSettings.class.getName(),
             AppNotificationSettings.class.getName(),
             OtherSoundSettings.class.getName(),
             ApnSettings.class.getName(),
@@ -343,7 +337,6 @@ public class SettingsActivity extends SettingsDrawerActivity
             ZenModeEventRuleSettings.class.getName(),
             ZenModeVisualInterruptionSettings.class.getName(),
             ProcessStatsUi.class.getName(),
-            PowerUsageDetail.class.getName(),
             ProcessStatsSummary.class.getName(),
             DrawOverlayDetails.class.getName(),
             WriteSettingsDetails.class.getName(),
@@ -374,22 +367,6 @@ public class SettingsActivity extends SettingsDrawerActivity
 
     private SharedPreferences mDevelopmentPreferences;
     private SharedPreferences.OnSharedPreferenceChangeListener mDevelopmentPreferencesListener;
-
-    private boolean mBatteryPresent = true;
-    private BroadcastReceiver mBatteryInfoReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {
-                boolean batteryPresent = Utils.isBatteryPresent(intent);
-
-                if (mBatteryPresent != batteryPresent) {
-                    mBatteryPresent = batteryPresent;
-                    updateTilesList();
-                }
-            }
-        }
-    };
 
     private final BroadcastReceiver mUserAddRemoveReceiver = new BroadcastReceiver() {
         @Override
@@ -827,7 +804,6 @@ public class SettingsActivity extends SettingsDrawerActivity
         mDevelopmentPreferences.registerOnSharedPreferenceChangeListener(
                 mDevelopmentPreferencesListener);
 
-        registerReceiver(mBatteryInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         registerReceiver(mUserAddRemoveReceiver, new IntentFilter(Intent.ACTION_USER_ADDED));
         registerReceiver(mUserAddRemoveReceiver, new IntentFilter(Intent.ACTION_USER_REMOVED));
 
@@ -842,7 +818,6 @@ public class SettingsActivity extends SettingsDrawerActivity
     @Override
     protected void onStop() {
         super.onStop();
-        unregisterReceiver(mBatteryInfoReceiver);
         unregisterReceiver(mUserAddRemoveReceiver);
         mDynamicIndexableContentMonitor.unregister();
     }
@@ -1075,10 +1050,6 @@ public class SettingsActivity extends SettingsDrawerActivity
         setTileEnabled(new ComponentName(packageName,
                 Settings.SimSettingsActivity.class.getName()),
                 Utils.showSimCardTile(this), isAdmin, pm);
-
-        setTileEnabled(new ComponentName(packageName,
-                Settings.PowerUsageSummaryActivity.class.getName()),
-                mBatteryPresent, isAdmin, pm);
 
         setTileEnabled(new ComponentName(packageName,
                 Settings.UserSettingsActivity.class.getName()),
