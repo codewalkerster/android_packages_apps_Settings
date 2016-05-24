@@ -160,7 +160,6 @@ public class Settings extends PreferenceActivity
             R.id.display_settings,
             R.id.storage_settings,
             R.id.application_settings,
-            R.id.battery_settings,
             R.id.personal_section,
             R.id.location_settings,
             R.id.security_settings,
@@ -583,12 +582,6 @@ public class Settings extends PreferenceActivity
                     }
                 } catch (RemoteException e) {
                     // ignored
-                }
-            } else if (id == R.id.battery_settings) {
-                // Remove battery settings when battery is not available. (e.g. TV)
-
-                if (!mBatteryPresent) {
-                    target.remove(i);
                 }
             } else if (id == R.id.account_settings) {
                 int headerIndex = i + 1;
