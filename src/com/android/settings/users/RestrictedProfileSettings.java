@@ -86,7 +86,7 @@ public class RestrictedProfileSettings extends AppRestrictionsFragment
         } else {
             ((TextView) mHeaderView.findViewById(android.R.id.title)).setText(info.name);
             ((ImageView) mHeaderView.findViewById(android.R.id.icon)).setImageDrawable(
-                    com.android.settingslib.Utils.getUserIcon(getActivity(), mUserManager, info));
+                    Utils.getUserIcon(getActivity(), mUserManager, info));
         }
     }
 
