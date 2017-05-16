@@ -210,7 +210,8 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
 
             if (TextUtils.isEmpty(ipAddr)) {
                 Toast.makeText(getActivity(),
-                        "IP address is empty", Toast.LENGTH_LONG).show();
+                    R.string.wifi_ip_settings_invalid_ip_address,
+                    Toast.LENGTH_LONG).show();
                 return false;
             }
 
@@ -227,11 +228,15 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
                 networkPrefixLength = Integer.parseInt(preference.getSummary().toString());
                 if (networkPrefixLength < 0 || networkPrefixLength > 32) {
                     Toast.makeText(getActivity(),
-                        "Network prefix length is empty", Toast.LENGTH_LONG).show();
+                        R.string.wifi_ip_settings_invalid_network_prefix_length,
+                        Toast.LENGTH_LONG).show();
                     return false;
                 }
                 staticConfig.ipAddress = new LinkAddress(inetAddr, networkPrefixLength);
             } catch (NumberFormatException e) {
+                Toast.makeText(getActivity(),
+                        R.string.wifi_ip_settings_invalid_network_prefix_length,
+                        Toast.LENGTH_LONG).show();
                 return false;
             }
 
@@ -246,7 +251,8 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
                 }
             } else {
                 Toast.makeText(getActivity(),
-                        "Gateway is empty", Toast.LENGTH_LONG).show();
+                    R.string.wifi_ip_settings_invalid_gateway,
+                    Toast.LENGTH_LONG).show();
                 return false;
             }
 
@@ -261,7 +267,8 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
                 }
             } else {
                 Toast.makeText(getActivity(),
-                        "DNS1 is empty", Toast.LENGTH_LONG).show();
+                    R.string.wifi_ip_settings_invalid_dns,
+                    Toast.LENGTH_LONG).show();
                 return false;
             }
 
@@ -304,26 +311,31 @@ public class EthernetStaticIP  extends SettingsPreferenceFragment
         } else if ( key.equals(KEY_IP_ADDRESS)
                 || key.equals(KEY_GATEWAY)
                 || key.equals(KEY_DNS1)
-                || key.equals(KEY_DNS2) ) {
+                || key.equals(KEY_DNS2)) {
 
             String value = (String)newValue;
-
-            LOG("onPreferenceChange() : value = " + value);
 
             if (TextUtils.isEmpty(value)) {
                 ((EditTextPreference)preference).setText(value);
                 preference.setSummary(value);
                 result = true;
-            } else  if ( !isValidIpAddress(value) ) {
-                LOG("onPreferenceChange() : IP address user inputed is INVALID." );
+            } else if ( !isValidIpAddress(value) ) {
                 Toast.makeText(getActivity(),
-                        R.string.ethernet_ip_settings_invalid_ip, Toast.LENGTH_LONG).show();
+                        R.string.ethernet_ip_settings_invalid_ip,
+                        Toast.LENGTH_LONG).show();
                 return false;
             } else {
                 ((EditTextPreference)preference).setText(value);
                 preference.setSummary(value);
                 result = true;
             }
+        } else if (key.equals(KEY_NETWORK_PREFIX_LEGHT)) {
+
+            String value = (String)newValue;
+
+            ((EditTextPreference)preference).setText(value);
+            preference.setSummary(value);
+            result = true;
         }
 
         return result;
