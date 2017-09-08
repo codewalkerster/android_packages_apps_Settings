@@ -121,12 +121,7 @@ public class HdmiSettings extends SettingsPreferenceFragment
         mSwitchBar.show();
         mSwitchBar.addOnSwitchChangeListener(this);
        //restore hdmi switch value
-        String switchValue = SystemProperties.get("sys.hdmi_status.aux", "on");
-        if(switchValue.equals("on")){
-            mSwitchBar.setChecked(true);
-        }else{
-            mSwitchBar.setChecked(false);
-        }
+        mSwitchBar.setChecked(true);
        //mSwitchBar.setChecked(sharedPreferences.getString("enable", "1").equals("1"));
        //String resolutionValue=sharedPreferences.getString("resolution", "1280x720p-60");
        //Log.d(TAG,"onActivityCreated resolutionValue="+resolutionValue);
@@ -182,15 +177,9 @@ public class HdmiSettings extends SettingsPreferenceFragment
     
     private void updateHDMIState(){
         Display[] allDisplays = mDisplayManager.getDisplays();
-        String switchValue = SystemProperties.get("sys.hdmi_status.aux", "on");
-        if(allDisplays == null || allDisplays.length < 2 || switchValue.equals("off")){
-            mHdmiResolution.setEnabled(false);
-            mHdmiScale.setEnabled(false);
-        }else{
-            mHdmiResolution.setEnabled(true);
-            mHdmiScale.setEnabled(true);
-            updateResolutionValue();
-        }
+        mHdmiResolution.setEnabled(true);
+        mHdmiScale.setEnabled(true);
+        updateResolutionValue();
     }
     
     protected void showConfirmSetModeDialog() {
@@ -244,15 +233,9 @@ public class HdmiSettings extends SettingsPreferenceFragment
    @Override
    public void onSwitchChanged(Switch switchView, boolean isChecked) {
         Log.i(TAG, "onSwitchChanged->isChecked:" + isChecked);
-        if(isChecked){
-            //Settings HDMI on
-            SystemProperties.set("sys.hdmi_status.aux", "on");
-            updateHDMIState();
-        }else{
-            //Settings HDMI off
-            SystemProperties.set("sys.hdmi_status.aux", "off");
-            updateHDMIState();
-        }
+        //Settings HDMI on
+        SystemProperties.set("sys.hdmi_status.aux", "on");
+        updateHDMIState();
    }
     private ContentObserver mHdmiTimeoutSettingObserver = new ContentObserver(new Handler()) {
        @Override
