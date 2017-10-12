@@ -64,7 +64,6 @@ public class ScreenScaleActivity extends Activity
    private float mDpiRatio = 0;
     private int mkeylast = -1;
     public static final String PROPERTY_OVERSCAN_MAIN = "persist.sys.overscan.main";
-    public static final String PROPERTY_OVERSCAN_AUX = "persist.sys.overscan.aux";
     /**
      * 标识平台
      */
@@ -373,12 +372,7 @@ public class ScreenScaleActivity extends Activity
    public void initData(){
         mPlatform = getIntent().getStringExtra(ConstData.IntentKey.PLATFORM);
         mDisplayInfo = (DisplayInfo)getIntent().getSerializableExtra(ConstData.IntentKey.DISPLAY_INFO);
-        String overScan;
-        if(mDisplayInfo.getDisplayId() == 0){
-            overScan = SystemProperties.get(PROPERTY_OVERSCAN_MAIN);
-        }else{
-            overScan = SystemProperties.get(PROPERTY_OVERSCAN_AUX);
-        }
+        String overScan = SystemProperties.get(PROPERTY_OVERSCAN_MAIN);
         if(TextUtils.isEmpty(overScan))
             return;
         try{
@@ -397,6 +391,6 @@ public class ScreenScaleActivity extends Activity
        append(",").append(mBottomScale).
        append(",").append(mLeftScale).
        append(",").append(mBottomScale);
-       SystemProperties.set(PROPERTY_OVERSCAN_AUX, builder.toString());
+       SystemProperties.set(PROPERTY_OVERSCAN_MAIN, builder.toString());
    }
 }
