@@ -756,7 +756,8 @@ public class UserSettings extends SettingsPreferenceFragment
                     pref.setSummary(R.string.user_admin);
                 }
                 pref.setTitle(user.name);
-                pref.setSelectable(false);
+                pref.setSelectable(true);
+                pref.setOnPreferenceClickListener(this);
             }
             if (pref == null) {
                 continue;
@@ -809,7 +810,8 @@ public class UserSettings extends SettingsPreferenceFragment
             userPreferences.add(pref);
             pref.setDisabledByAdmin(
                     mUserCaps.mDisallowAddUser ? mUserCaps.mEnforcedAdmin : null);
-            pref.setSelectable(false);
+            pref.setSelectable(true);
+            pref.setOnPreferenceClickListener(this);
         }
 
         // Sort list of users by serialNum
@@ -941,11 +943,17 @@ public class UserSettings extends SettingsPreferenceFragment
             }
         } else if (pref instanceof UserPreference) {
             int userId = ((UserPreference) pref).getUserId();
-            // Get the latest status of the user
-            UserInfo user = mUserManager.getUserInfo(userId);
-            if (!isInitialized(user)) {
-                mHandler.sendMessage(mHandler.obtainMessage(
-                        MESSAGE_SETUP_USER, user.id, user.serialNumber));
+            if (userId == UserPreference.USERID_GUEST_DEFAULTS) {
+                createAndSwitchToGuestUser();
+            } else {
+                // Get the latest status of the user
+                UserInfo user = mUserManager.getUserInfo(userId);
+                if (!isInitialized(user)) {
+                    mHandler.sendMessage(mHandler.obtainMessage(
+                            MESSAGE_SETUP_USER, user.id, user.serialNumber));
+                } else {
+                    switchUserNow(userId);
+                }
             }
         } else if (pref == mAddUser) {
             // If we allow both types, show a picker, otherwise directly go to
@@ -961,6 +969,29 @@ public class UserSettings extends SettingsPreferenceFragment
             startActivity(intent);
         }
         return false;
+    }
+
+    private void createAndSwitchToGuestUser() {
+        final UserInfo guest = findGuest();
+        if (guest != null) {
+            switchUserNow(guest.id);
+            return;
+        }
+        UserInfo guestUser = mUserManager.createGuest(getActivity(),
+                    getResources().getString(R.string.user_guest));
+        if (guestUser != null) {
+            switchUserNow(guestUser.id);
+        }
+    }
+
+    private UserInfo findGuest() {
+        List<UserInfo> users = mUserManager.getUsers();
+        for (UserInfo user : users) {
+            if (user.isGuest()) {
+                return user;
+            }
+        }
+        return null;
     }
 
     private boolean isInitialized(UserInfo user) {

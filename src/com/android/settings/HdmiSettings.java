@@ -53,7 +53,7 @@ import android.view.Display;
 public class HdmiSettings extends SettingsPreferenceFragment
        implements OnPreferenceChangeListener,SwitchBar.OnSwitchChangeListener,Preference.OnPreferenceClickListener{
    /** Called when the activity is first created. */
-   private static final String TAG = "HdmiControllerActivity";
+   private static final String TAG = "HdmiSettings";
    private static final String KEY_HDMI_RESOLUTION = "hdmi_resolution";
    private static final String KEY_HDMI_SCALE="hdmi_screen_zoom";
    private static final String KEY_HDMI_LCD = "hdmi_lcd_timeout";
@@ -79,6 +79,24 @@ public class HdmiSettings extends SettingsPreferenceFragment
    private DisplayManager mDisplayManager;
    private DisplayListener mDisplayListener;
 
+    private final BroadcastReceiver HdmiListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context ctxt, Intent receivedIt) {
+            String action = receivedIt.getAction();
+            String HDMIINTENT = "android.intent.action.HDMI_PLUGGED";
+            if (action.equals(HDMIINTENT)) {
+                boolean state = receivedIt.getBooleanExtra("state", false);
+
+                if (state) {
+                     Log.d(TAG, "BroadcastReceiver.onReceive() : Connected HDMI-TV");
+
+                } else {
+                    Log.d(TAG, "BroadcastReceiver.onReceive() : Disconnected HDMI-TV");
+                }
+            }
+        }
+    };
+
    @Override
    protected int getMetricsCategory() {
        return MetricsEvent.DISPLAY;
@@ -87,6 +105,8 @@ public class HdmiSettings extends SettingsPreferenceFragment
    @Override
    public void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
+       IntentFilter filter = new IntentFilter("android.intent.action.HDMI_PLUGGED");
+       getContext().registerReceiver(HdmiListener, filter);
        context = getActivity();
        mDisplayManager = (DisplayManager)context.getSystemService(Context.DISPLAY_SERVICE);
        mDisplayListener = new DisplayListener();
@@ -168,22 +188,36 @@ public class HdmiSettings extends SettingsPreferenceFragment
      */
     public void updateResolutionValue(){
         String resolutionValue = null;
-        resolutionValue = DrmDisplaySetting.getCurDisplayMode(mDisplayInfo);
+        resolutionValue = DrmDisplaySetting.getCurDisplayMode(getDisplayInfo());
         Log.i(TAG, "resolutionValue:" + resolutionValue);
         mOldResolution = resolutionValue;
         if(resolutionValue != null)
             mHdmiResolution.setValue(resolutionValue);
     }
-    
+
     private void updateHDMIState(){
         Display[] allDisplays = mDisplayManager.getDisplays();
-        mHdmiResolution.setEnabled(true);
-        mHdmiScale.setEnabled(true);
-        updateResolutionValue();
+        String switchValue = SystemProperties.get("sys.hdmi_status.aux", "on");
+        if(allDisplays == null || allDisplays.length < 2 || switchValue.equals("off")){
+            mHdmiResolution.setEnabled(false);
+            mHdmiScale.setEnabled(false);
+        }else{
+                new Handler().postDelayed(new Runnable(){
+                public void run() {
+                    //增加延迟，保证数据能够拿到
+                    mHdmiResolution.setEntries(DrmDisplaySetting.getDisplayModes(getDisplayInfo()).toArray(new String[0]));
+                    mHdmiResolution.setEntryValues(DrmDisplaySetting.getDisplayModes(getDisplayInfo()).toArray(new String[0]));
+                    updateResolutionValue();
+                    mHdmiResolution.setEnabled(true);
+                    mHdmiScale.setEnabled(true);
+                }
+            }, 700);
+
+        }
     }
-    
+
     protected void showConfirmSetModeDialog() {
-        DialogFragment df = ConfirmSetModeDialogFragment.newInstance(mDisplayInfo, new ConfirmSetModeDialogFragment.OnDialogDismissListener() {
+        DialogFragment df = ConfirmSetModeDialogFragment.newInstance(getDisplayInfo(), new ConfirmSetModeDialogFragment.OnDialogDismissListener() {
             @Override
             public void onDismiss(boolean isok) {
                 Log.i(TAG, "showConfirmSetModeDialog->onDismiss->isok:" + isok);
@@ -193,7 +227,7 @@ public class HdmiSettings extends SettingsPreferenceFragment
         });
         df.show(getFragmentManager(), "ConfirmDialog");
     }
-   
+
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
         // TODO Auto-generated method stub
@@ -204,7 +238,7 @@ public class HdmiSettings extends SettingsPreferenceFragment
         if(preference == mHdmiScale) {
             Intent screenScaleIntent = new Intent(getActivity(), ScreenScaleActivity.class);
             screenScaleIntent.putExtra(ConstData.IntentKey.PLATFORM, mStrPlatform);
-            screenScaleIntent.putExtra(ConstData.IntentKey.DISPLAY_INFO, mDisplayInfo);
+            screenScaleIntent.putExtra(ConstData.IntentKey.DISPLAY_INFO, getDisplayInfo());
             startActivity(screenScaleIntent);
         }else if(preference == mHdmiResolution){
             updateHDMIState();
@@ -221,7 +255,7 @@ public class HdmiSettings extends SettingsPreferenceFragment
             if(obj.equals(mOldResolution))
                 return true;
             int index = mHdmiResolution.findIndexOfValue((String)obj);
-            boolean isSuccess = DrmDisplaySetting.setDisplayModeTemp(mDisplayInfo, index);
+            boolean isSuccess = DrmDisplaySetting.setDisplayModeTemp(getDisplayInfo(), index);
             if(isSuccess)
                 showConfirmSetModeDialog();
        }
