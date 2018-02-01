@@ -198,7 +198,7 @@ public class HdmiSettings extends SettingsPreferenceFragment
     private void updateHDMIState(){
         Display[] allDisplays = mDisplayManager.getDisplays();
         String switchValue = SystemProperties.get("sys.hdmi_status.aux", "on");
-        if(allDisplays == null || allDisplays.length < 2 || switchValue.equals("off")){
+        if(allDisplays == null || switchValue.equals("off")){
             mHdmiResolution.setEnabled(false);
             mHdmiScale.setEnabled(false);
         }else{
