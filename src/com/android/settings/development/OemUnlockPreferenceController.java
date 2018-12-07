@@ -42,7 +42,6 @@ public class OemUnlockPreferenceController extends DeveloperOptionsPreferenceCon
 
     private static final String PREFERENCE_KEY = "oem_unlock_enable";
 
-    private final OemLockManager mOemLockManager;
     private final UserManager mUserManager;
     private final TelephonyManager mTelephonyManager;
     private final DevelopmentSettingsDashboardFragment mFragment;
@@ -52,7 +51,6 @@ public class OemUnlockPreferenceController extends DeveloperOptionsPreferenceCon
     public OemUnlockPreferenceController(Context context, Activity activity,
             DevelopmentSettingsDashboardFragment fragment) {
         super(context);
-        mOemLockManager = (OemLockManager) context.getSystemService(Context.OEM_LOCK_SERVICE);
         mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
         mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         mFragment = fragment;
@@ -65,7 +63,7 @@ public class OemUnlockPreferenceController extends DeveloperOptionsPreferenceCon
 
     @Override
     public boolean isAvailable() {
-        return mOemLockManager != null;
+        return false;
     }
 
     @Override
@@ -89,7 +87,6 @@ public class OemUnlockPreferenceController extends DeveloperOptionsPreferenceCon
                 confirmEnableOemUnlock();
             }
         } else {
-            mOemLockManager.setOemUnlockAllowedByUser(false);
             OemLockInfoDialog.show(mFragment);
         }
         return true;
@@ -115,8 +112,6 @@ public class OemUnlockPreferenceController extends DeveloperOptionsPreferenceCon
             if (resultCode == Activity.RESULT_OK) {
                 if (mPreference.isChecked()) {
                     confirmEnableOemUnlock();
-                } else {
-                    mOemLockManager.setOemUnlockAllowedByUser(false);
                 }
             }
             return true;
@@ -130,7 +125,6 @@ public class OemUnlockPreferenceController extends DeveloperOptionsPreferenceCon
     }
 
     public void onOemUnlockConfirmed() {
-        mOemLockManager.setOemUnlockAllowedByUser(true);
     }
 
     public void onOemUnlockDismissed() {
@@ -180,7 +174,7 @@ public class OemUnlockPreferenceController extends DeveloperOptionsPreferenceCon
      */
     @VisibleForTesting
     boolean isBootloaderUnlocked() {
-        return mOemLockManager.isDeviceOemUnlocked();
+        return true;
     }
 
     private boolean enableOemUnlockPreference() {
@@ -207,14 +201,13 @@ public class OemUnlockPreferenceController extends DeveloperOptionsPreferenceCon
     @VisibleForTesting
     boolean isOemUnlockAllowedByUserAndCarrier() {
         final UserHandle userHandle = UserHandle.of(UserHandle.myUserId());
-        return mOemLockManager.isOemUnlockAllowedByCarrier()
-                && !mUserManager.hasBaseUserRestriction(UserManager.DISALLOW_FACTORY_RESET,
+        return !mUserManager.hasBaseUserRestriction(UserManager.DISALLOW_FACTORY_RESET,
                 userHandle);
     }
 
     @VisibleForTesting
     boolean isOemUnlockedAllowed() {
-        return mOemLockManager.isOemUnlockAllowed();
+        return true;
     }
 
 }
