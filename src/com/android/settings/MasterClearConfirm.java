@@ -24,8 +24,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.UserHandle;
 import android.os.UserManager;
-import android.service.oemlock.OemLockManager;
-import android.service.persistentdata.PersistentDataBlockManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,13 +65,7 @@ public class MasterClearConfirm extends InstrumentedFragment {
                 return;
             }
 
-            final PersistentDataBlockManager pdbManager = (PersistentDataBlockManager)
-                    getActivity().getSystemService(Context.PERSISTENT_DATA_BLOCK_SERVICE);
-            final OemLockManager oemLockManager = (OemLockManager)
-                    getActivity().getSystemService(Context.OEM_LOCK_SERVICE);
-
-            if (pdbManager != null && !oemLockManager.isOemUnlockAllowed() &&
-                    Utils.isDeviceProvisioned(getActivity())) {
+            if (Utils.isDeviceProvisioned(getActivity())) {
                 // if OEM unlock is allowed, the persistent data block will be wiped during FR
                 // process. If disabled, it will be wiped here, unless the device is still being
                 // provisioned, in which case the persistent data block will be preserved.
@@ -83,7 +75,6 @@ public class MasterClearConfirm extends InstrumentedFragment {
 
                     @Override
                     protected Void doInBackground(Void... params) {
-                        pdbManager.wipe();
                         return null;
                     }
 
