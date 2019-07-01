@@ -34,7 +34,7 @@ import com.android.settingslib.bluetooth.LocalBluetoothManager;
 public class ConnectedBluetoothDeviceUpdater extends BluetoothDeviceUpdater {
 
     private static final String TAG = "ConnBluetoothDeviceUpdater";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     private final AudioManager mAudioManager;
 
@@ -89,7 +89,7 @@ public class ConnectedBluetoothDeviceUpdater extends BluetoothDeviceUpdater {
             currentAudioProfile = BluetoothProfile.HEADSET;
         } else {
             // without phone call
-            currentAudioProfile = BluetoothProfile.A2DP;
+            currentAudioProfile = BluetoothProfile.A2DP_SINK;
         }
 
         boolean isFilterMatched = false;
@@ -105,8 +105,8 @@ public class ConnectedBluetoothDeviceUpdater extends BluetoothDeviceUpdater {
             // If current audio profile is headset,
             // show the bluetooth device that doesn't have headset profile.
             switch (currentAudioProfile) {
-                case BluetoothProfile.A2DP:
-                    isFilterMatched = !cachedDevice.isA2dpDevice();
+                case BluetoothProfile.A2DP_SINK:
+                    isFilterMatched = !cachedDevice.isA2dpSinkDevice();
                     break;
                 case BluetoothProfile.HEADSET:
                     isFilterMatched = !cachedDevice.isHfpDevice();
