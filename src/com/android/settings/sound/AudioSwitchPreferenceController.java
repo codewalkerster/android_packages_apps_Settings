@@ -271,15 +271,19 @@ public abstract class AudioSwitchPreferenceController extends BasePreferenceCont
      */
     protected List<BluetoothDevice> getConnectedA2dpDevices() {
         final List<BluetoothDevice> connectedDevices = new ArrayList<>();
-        final A2dpProfile a2dpProfile = mProfileManager.getA2dpProfile();
-        if (a2dpProfile == null) {
-            return connectedDevices;
-        }
-        final List<BluetoothDevice> devices = a2dpProfile.getConnectedDevices();
-        for (BluetoothDevice device : devices) {
-            if (device.isConnected()) {
-                connectedDevices.add(device);
+        try {
+            final A2dpProfile a2dpProfile = mProfileManager.getA2dpProfile();
+            if (a2dpProfile == null) {
+                return connectedDevices;
             }
+            final List<BluetoothDevice> devices = a2dpProfile.getConnectedDevices();
+            for (BluetoothDevice device : devices) {
+                if (device.isConnected()) {
+                    connectedDevices.add(device);
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Error getting a2dpProfile. Caused by disabling Bluetooth.", e);
         }
         return connectedDevices;
     }
@@ -289,20 +293,24 @@ public abstract class AudioSwitchPreferenceController extends BasePreferenceCont
      */
     protected List<BluetoothDevice> getConnectedHearingAidDevices() {
         final List<BluetoothDevice> connectedDevices = new ArrayList<>();
-        final HearingAidProfile hapProfile = mProfileManager.getHearingAidProfile();
-        if (hapProfile == null) {
-            return connectedDevices;
-        }
-        final List<Long> devicesHiSyncIds = new ArrayList<>();
-        final List<BluetoothDevice> devices = hapProfile.getConnectedDevices();
-        for (BluetoothDevice device : devices) {
-            final long hiSyncId = hapProfile.getHiSyncId(device);
-            // device with same hiSyncId should not be shown in the UI.
-            // So do not add it into connectedDevices.
-            if (!devicesHiSyncIds.contains(hiSyncId) && device.isConnected()) {
-                devicesHiSyncIds.add(hiSyncId);
-                connectedDevices.add(device);
+        try {
+            final HearingAidProfile hapProfile = mProfileManager.getHearingAidProfile();
+            if (hapProfile == null) {
+                return connectedDevices;
             }
+            final List<Long> devicesHiSyncIds = new ArrayList<>();
+            final List<BluetoothDevice> devices = hapProfile.getConnectedDevices();
+            for (BluetoothDevice device : devices) {
+                final long hiSyncId = hapProfile.getHiSyncId(device);
+                // device with same hiSyncId should not be shown in the UI.
+                // So do not add it into connectedDevices.
+                if (!devicesHiSyncIds.contains(hiSyncId) && device.isConnected()) {
+                    devicesHiSyncIds.add(hiSyncId);
+                    connectedDevices.add(device);
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Error getting getHearingAidProfile. Caused by disabling Bluetooth.", e);
         }
         return connectedDevices;
     }
