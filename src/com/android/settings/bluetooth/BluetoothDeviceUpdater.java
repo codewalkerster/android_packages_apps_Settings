@@ -22,6 +22,7 @@ import android.os.SystemProperties;
 import android.support.annotation.VisibleForTesting;
 import android.support.v7.preference.Preference;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.settings.R;
 import com.android.settings.connecteddevice.DevicePreferenceCallback;
@@ -85,10 +86,16 @@ public abstract class BluetoothDeviceUpdater implements BluetoothCallback,
      * Register the bluetooth event callback and update the list
      */
     public void registerCallback() {
-        mLocalManager.setForegroundActivity(mFragment.getContext());
-        mLocalManager.getEventManager().registerCallback(this);
-        mLocalManager.getProfileManager().addServiceListener(this);
-        forceUpdate();
+        try {
+            mLocalManager.setForegroundActivity(mFragment.getContext());
+            mLocalManager.getEventManager().registerCallback(this);
+            mLocalManager.getProfileManager().addServiceListener(this);
+            forceUpdate();
+        } catch (Exception e) {
+            Toast.makeText(mPrefContext,
+                    "Bluetooth Service is disabled",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
@@ -104,10 +111,16 @@ public abstract class BluetoothDeviceUpdater implements BluetoothCallback,
      * Force to update the list of bluetooth devices
      */
     public void forceUpdate() {
-        Collection<CachedBluetoothDevice> cachedDevices =
+        try {
+            Collection<CachedBluetoothDevice> cachedDevices =
                 mLocalManager.getCachedDeviceManager().getCachedDevicesCopy();
-        for (CachedBluetoothDevice cachedBluetoothDevice : cachedDevices) {
-            update(cachedBluetoothDevice);
+            for (CachedBluetoothDevice cachedBluetoothDevice : cachedDevices) {
+                update(cachedBluetoothDevice);
+            }
+        } catch (Exception e) {
+            Toast.makeText(mPrefContext,
+                    "Bluetooth Service is disabled",
+                    Toast.LENGTH_LONG).show();
         }
     }
 
