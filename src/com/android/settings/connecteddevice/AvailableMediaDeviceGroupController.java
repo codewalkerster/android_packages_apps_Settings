@@ -23,6 +23,7 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceGroup;
 import android.support.v7.preference.PreferenceScreen;
+import android.util.Log;
 import com.android.settings.bluetooth.AvailableMediaBluetoothDeviceUpdater;
 import com.android.settings.bluetooth.BluetoothDeviceUpdater;
 import com.android.settings.bluetooth.Utils;
@@ -58,14 +59,22 @@ public class AvailableMediaDeviceGroupController extends BasePreferenceControlle
 
     @Override
     public void onStart() {
-        mBluetoothDeviceUpdater.registerCallback();
-        mLocalBluetoothManager.getEventManager().registerCallback(this);
+        try {
+            mBluetoothDeviceUpdater.registerCallback();
+            mLocalBluetoothManager.getEventManager().registerCallback(this);
+        } catch (Exception e) {
+            Log.w("AvailableMediaDeviceGroupController", "B/T is not available");
+        }
     }
 
     @Override
     public void onStop() {
-        mBluetoothDeviceUpdater.unregisterCallback();
-        mLocalBluetoothManager.getEventManager().unregisterCallback(this);
+        try {
+            mBluetoothDeviceUpdater.unregisterCallback();
+            mLocalBluetoothManager.getEventManager().unregisterCallback(this);
+        } catch (Exception e) {
+            Log.w("AvailableMediaDeviceGroupController", "B/T is not available");
+        }
     }
 
     @Override
