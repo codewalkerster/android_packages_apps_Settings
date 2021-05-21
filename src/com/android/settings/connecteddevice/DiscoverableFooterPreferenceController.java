@@ -25,6 +25,7 @@ import android.content.pm.PackageManager;
 import android.support.v7.preference.PreferenceScreen;
 import android.text.BidiFormatter;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.settings.bluetooth.AlwaysDiscoverable;
@@ -112,16 +113,24 @@ public class DiscoverableFooterPreferenceController extends BasePreferenceContro
 
     @Override
     public void onResume() {
-        mContext.registerReceiver(mBluetoothChangedReceiver,
-                new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-        mAlwaysDiscoverable.start();
-        updateFooterPreferenceTitle(mLocalAdapter.getState());
+        try {
+            mContext.registerReceiver(mBluetoothChangedReceiver,
+                    new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+            mAlwaysDiscoverable.start();
+            updateFooterPreferenceTitle(mLocalAdapter.getState());
+        } catch (Exception e) {
+            Log.w("DiscoverableFooterPreferenceController", "B/T is not available");
+        }
     }
 
     @Override
     public void onPause() {
-        mContext.unregisterReceiver(mBluetoothChangedReceiver);
-        mAlwaysDiscoverable.stop();
+        try {
+            mContext.unregisterReceiver(mBluetoothChangedReceiver);
+            mAlwaysDiscoverable.stop();
+        } catch (Exception e) {
+            Log.w("DiscoverableFooterPreferenceController", "B/T is not available");
+        }
     }
 
     private void updateFooterPreferenceTitle (int bluetoothState) {

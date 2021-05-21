@@ -102,9 +102,15 @@ public abstract class BluetoothDeviceUpdater implements BluetoothCallback,
      * Unregister the bluetooth event callback
      */
     public void unregisterCallback() {
-        mLocalManager.setForegroundActivity(null);
-        mLocalManager.getEventManager().unregisterCallback(this);
-        mLocalManager.getProfileManager().removeServiceListener(this);
+        try {
+            mLocalManager.setForegroundActivity(null);
+            mLocalManager.getEventManager().unregisterCallback(this);
+            mLocalManager.getProfileManager().removeServiceListener(this);
+        } catch (Exception e) {
+            Toast.makeText(mPrefContext,
+                    "Bluetooth Service is disabled",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
