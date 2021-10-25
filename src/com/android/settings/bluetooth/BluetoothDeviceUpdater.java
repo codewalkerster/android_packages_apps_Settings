@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.VisibleForTesting;
 import androidx.preference.Preference;
@@ -87,6 +88,9 @@ public abstract class BluetoothDeviceUpdater implements BluetoothCallback,
      */
     public void registerCallback() {
         if (mLocalManager == null) {
+            Toast.makeText(mPrefContext,
+                    "Bluetooth Service is disabled",
+                    Toast.LENGTH_LONG).show();
             Log.e(TAG, "registerCallback() Bluetooth is not supported on this device");
             return;
         }
@@ -101,6 +105,9 @@ public abstract class BluetoothDeviceUpdater implements BluetoothCallback,
      */
     public void unregisterCallback() {
         if (mLocalManager == null) {
+            Toast.makeText(mPrefContext,
+                    "Bluetooth Service is disabled",
+                    Toast.LENGTH_LONG).show();
             Log.e(TAG, "unregisterCallback() Bluetooth is not supported on this device");
             return;
         }
@@ -114,6 +121,9 @@ public abstract class BluetoothDeviceUpdater implements BluetoothCallback,
      */
     public void forceUpdate() {
         if (mLocalManager == null) {
+            Toast.makeText(mPrefContext,
+                    "Bluetooth Service is disabled",
+                    Toast.LENGTH_LONG).show();
             Log.e(TAG, "forceUpdate() Bluetooth is not supported on this device");
             return;
         }
