@@ -10,11 +10,14 @@ import java.util.Arrays;
  */
 public class DisplayInfo implements Serializable {
     private int displayId;
+    private int displayNo;
+    private int status;
     private int type;
     private String description;
     private String[] modes;
     private String[] orginModes;
     private String currentResolution;
+    private String lastResolution = "Auto";
 
     public int getDisplayId() {
         return displayId;
@@ -22,6 +25,22 @@ public class DisplayInfo implements Serializable {
 
     public void setDisplayId(int displayId) {
         this.displayId = displayId;
+    }
+
+    public int getDisplayNo() {
+        return displayNo;
+    }
+
+    public void setDisplayNo(int display) {
+        this.displayNo = display;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 
     public int getType() {
@@ -62,6 +81,14 @@ public class DisplayInfo implements Serializable {
 
     public void setCurrentResolution(String currentResolution) {
         this.currentResolution = currentResolution;
+    }
+
+    public String getLastResolution() {
+        return lastResolution;
+    }
+
+    public void setLastResolution(String lastResolution) {
+        this.lastResolution = lastResolution;
     }
 
     @Override

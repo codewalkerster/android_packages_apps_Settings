@@ -1,13 +1,16 @@
 package com.android.settings.display;
 
-import android.R.integer;
+import android.graphics.Rect;
+import android.os.RkDisplayOutputManager;
 import android.util.Log;
 
 import com.android.settings.utils.ReflectUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Drm Display Setting.
@@ -16,104 +19,103 @@ import java.util.List;
 public class DrmDisplaySetting {
     private final static String TAG = "DrmDisplaySetting";
 
-    public final static int DISPLAY_TYPE_MAIN = 0;
-    public final static int DISPLAY_TYPE_AUX = 1;
+    public static final int DPY_STATUS_CONNECTED = 1;
+
+    public static final String DRM_MODE_CONNECTOR_UNKNOWN = "Display";//Unknown
+    public static final String DRM_MODE_CONNECTOR_eDP = "eDP";
+    public static final String DRM_MODE_CONNECTOR_VIRTUAL = "VIRTUAL";
+    public static final String DRM_MODE_CONNECTOR_DSI = "DSI";
+    public static Map<String, String> CONNECTOR_DISPLAY_NAME = new HashMap<String, String>() {
+        {
+            put("0", DRM_MODE_CONNECTOR_UNKNOWN);
+            put("1", "VGA");
+            put("2", "DVII");
+            put("3", "DVID");
+            put("4", "DVIA");
+            put("5", "Composite");
+            put("6", "SVIDEO");
+            put("7", "LVDS");
+            put("8", "Component");
+            put("9", "9PinDIN");
+            put("10", "DisplayPort");
+            put("11", "HDMIA");
+            put("12", "HDMIB");
+            put("13", "TV");
+            put("14", DRM_MODE_CONNECTOR_eDP);
+            put("15", DRM_MODE_CONNECTOR_VIRTUAL);
+            put("16", DRM_MODE_CONNECTOR_DSI);
+        }
+    };
 
     private static void logd(String text) {
         Log.d(TAG, TAG + " - " + text);
     }
 
-    public static List<DisplayInfo> getDisplayInfoList() {
-        List<DisplayInfo> displayInfos = new ArrayList<DisplayInfo>();
+    public static String[] getConnectorInfo() {
         Object rkDisplayOutputManager = null;
-
         try {
             rkDisplayOutputManager = Class.forName("android.os.RkDisplayOutputManager").newInstance();
-            logd("getDisplayInfoList->rkDisplayOutputManager->name:" + rkDisplayOutputManager.getClass().getName());
         } catch (Exception e) {
+            // no handle
         }
-        logd(" getDisplayInfoList 1");
-        int[] mainTypes = (int[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getIfaceList", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_MAIN});
-        logd(" getDisplayInfoList 2");
-        int[] externalTypes = (int[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getIfaceList", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_MAIN});
-        logd(" getDisplayInfoList 3");
-
-        if (mainTypes != null && mainTypes.length > 0) {
-            int currMainType = (Integer) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentInterface", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_MAIN});
-            DisplayInfo displayInfo = new DisplayInfo();
-            displayInfo.setDisplayId(DISPLAY_TYPE_MAIN);
-            logd(" getDisplayInfoList 4");
-            displayInfo.setDescription((String) ReflectUtils.invokeMethod(rkDisplayOutputManager, "typetoface", new Class[]{int.class}, new Object[]{currMainType}));
-            logd(" getDisplayInfoList 5");
-            displayInfo.setType(currMainType);
-            String[] orginModes = (String[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getModeList", new Class[]{int.class, int.class}, new Object[]{DISPLAY_TYPE_MAIN, currMainType});
-            orginModes = filterOrginModes(orginModes);
-            displayInfo.setOrginModes(orginModes);
-            displayInfo.setModes(getFilterModeList(orginModes));
-            logd(" getDisplayInfoList 6");
-            displayInfos.add(displayInfo);
-        }
-        if (externalTypes != null && externalTypes.length > 0) {
-            int currExternalType = (Integer) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentInterface", new Class[]{int.class}, new Object[]{1});
-            DisplayInfo displayInfo = new DisplayInfo();
-            displayInfo.setType(currExternalType);
-            String[] orginModes = (String[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getModeList", new Class[]{int.class, int.class}, new Object[]{1, externalTypes});
-            orginModes = filterOrginModes(orginModes);
-            displayInfo.setOrginModes(orginModes);
-            displayInfo.setModes(getFilterModeList(orginModes));
-            displayInfo.setDescription((String) ReflectUtils.invokeMethod(rkDisplayOutputManager, "typetoface", new Class[]{int.class}, new Integer[]{currExternalType}));
-            displayInfo.setDisplayId(1);
-            displayInfos.add(displayInfo);
-        }
-        return displayInfos;
-    }
-
-    public static List<String> getDisplayModes(DisplayInfo di) {
-        List<String> res = new ArrayList<String>();
-        if (di.getDisplayId() == DISPLAY_TYPE_MAIN) {
-            di = getMainDisplayInfo();
-        } else if (di.getDisplayId() == DISPLAY_TYPE_AUX) {
-            di = getAuxDisplayInfo();
-        }
-        if (di != null) {
-            String[] modes = di.getOrginModes();
-            if (modes != null && modes.length != 0) {
-                res = Arrays.asList(modes);
-            }
-        }
-        return res;
-    }
-
-    public static String getCurDisplayMode(DisplayInfo di) {
-        if (di.getDisplayId() == DISPLAY_TYPE_MAIN) {
-            logd("DrmDisplaySetting getCurDisplayMode DISPLAY_TYPE_MAIN" + System.currentTimeMillis());
-            return getCurMainMode();
-        } else if (di.getDisplayId() == DISPLAY_TYPE_AUX) {
-            logd("DrmDisplaySetting getCurDisplayMode DISPLAY_TYPE_AUX " + System.currentTimeMillis());
-            return getCurAuxMode();
+        if (rkDisplayOutputManager != null) {
+            return (String[]) ReflectUtils.invokeMethodNoParameter(rkDisplayOutputManager, "getConnectorInfo");
         }
         return null;
     }
 
-    public static String getCurMainMode() {
-        return getMainMode();
+    public static Rect getOverScan(int display) {
+        RkDisplayOutputManager manager = new RkDisplayOutputManager();
+        return manager.getOverScan(display);
     }
 
-    public static String getCurAuxMode() {
-        return getAuxMode();
+    public static void setOverScan(int display, int direction, int value) {
+        RkDisplayOutputManager manager = new RkDisplayOutputManager();
+        manager.setOverScan(display, direction, value);
+    }
+
+    public static int getDisplayNumber() {
+        RkDisplayOutputManager manager = new RkDisplayOutputManager();
+        return manager.getDisplayNumber();
+    }
+
+    public static int getCurrentDpyConnState(int display) {
+        RkDisplayOutputManager manager = new RkDisplayOutputManager();
+        return manager.getCurrentDpyConnState(display);
+    }
+
+    public static void updateDisplayModesInfo(DisplayInfo displayInfo) {
+        int display = displayInfo.getDisplayNo();
+        RkDisplayOutputManager manager = new RkDisplayOutputManager();
+//        int[] ifaces = manager.getIfaceList(display);
+//        if (null == ifaces || ifaces.length < 1) {
+//            Log.w(TAG, "display " + display + ", ifaces=" + ifaces);
+//            displayInfo.setOrginModes(null);
+//            displayInfo.setModes(null);
+//            displayInfo.setCurrentResolution(null);
+//        } else {
+        int type = manager.getCurrentInterface(display);
+        String[] orginModes = manager.getModeList(display, type);
+        orginModes = filterOrginModes(orginModes);
+        displayInfo.setOrginModes(orginModes);
+        displayInfo.setModes(getFilterModeList(orginModes));
+        String currentMode = manager.getCurrentMode(display, type);
+        displayInfo.setCurrentResolution(currentMode);
+//        }
+    }
+
+    public static void setMode(int display, String mode) {
+        RkDisplayOutputManager manager = new RkDisplayOutputManager();
+        int result = manager.updateDisplayInfos();
+        int type = manager.getCurrentInterface(display);
+        logd("setMode display=" + display + ", type=" + type + ", mode=" + mode);
+        manager.setMode(display, type, mode);
     }
 
     public static void setDisplayModeTemp(DisplayInfo di, int index) {
-        String mode = getDisplayModes(di).get(index);
-        setDisplayModeTemp(di, mode);
-    }
-
-    public static void setDisplayModeTemp(DisplayInfo di, String mode) {
-        if (di.getDisplayId() == DISPLAY_TYPE_MAIN) {
-            setMainModeTemp(mode);
-        } else if (di.getDisplayId() == DISPLAY_TYPE_AUX) {
-            setAuxModeTemp(mode);
-        }
+        String mode = Arrays.asList(di.getOrginModes()).get(index);
+        setMode(di.getDisplayNo(), mode);
+        tmpSetMode = mode;
     }
 
     public static void saveConfig() {
@@ -141,202 +143,20 @@ public class DrmDisplaySetting {
         }
     }
 
-    public static void confirmSaveDisplayMode(DisplayInfo di, boolean isSave) {
-        if (di == null) {
+    public static void confirmSaveDisplayMode(DisplayInfo displayInfo, boolean isSave) {
+        if (displayInfo == null || tmpSetMode == null) {
             return;
         }
-        if (di.getDisplayId() == DISPLAY_TYPE_MAIN) {
-            confirmSaveMainMode(isSave);
-        } else if (di.getDisplayId() == DISPLAY_TYPE_AUX) {
-            confirmSaveAuxMode(isSave);
+        if (isSave) {
+            displayInfo.setLastResolution(tmpSetMode);
+        } else {
+            setMode(displayInfo.getDisplayNo(), displayInfo.getLastResolution());
+            tmpSetMode = null;
         }
         saveConfig();
     }
 
-    private static String tmpSetMainMode = null;
-    private static String curSetMainMode = "Auto";
-
-    public static DisplayInfo getDisplayInfo(int displayId) {
-        if (DISPLAY_TYPE_MAIN == displayId) {
-            return getMainDisplayInfo();
-        } else if (DISPLAY_TYPE_AUX == displayId) {
-            return getAuxDisplayInfo();
-        }
-        return null;
-    }
-
-    public static DisplayInfo getMainDisplayInfo() {
-        Object rkDisplayOutputManager = null;
-        try {
-            rkDisplayOutputManager = Class.forName("android.os.RkDisplayOutputManager").newInstance();
-            logd("getDisplayInfoList->rkDisplayOutputManager->name:" + rkDisplayOutputManager.getClass().getName());
-        } catch (Exception e) {
-        }
-        if (rkDisplayOutputManager == null)
-            return null;
-        logd(" getMainDisplayInfo 1");
-        int[] mainTypes = (int[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getIfaceList", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_MAIN});
-        logd(" getMainDisplayInfo 2");
-        if (mainTypes != null && mainTypes.length > 0) {
-            int currMainType = (Integer) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentInterface", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_MAIN});
-            DisplayInfo displayInfo = new DisplayInfo();
-            displayInfo.setDisplayId(DISPLAY_TYPE_MAIN);
-            logd(" getMainDisplayInfo 3");
-            displayInfo.setDescription((String) ReflectUtils.invokeMethod(rkDisplayOutputManager, "typetoface", new Class[]{int.class}, new Object[]{currMainType}));
-            logd(" getMainDisplayInfo 4");
-            displayInfo.setType(currMainType);
-            String[] orginModes = (String[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getModeList", new Class[]{int.class, int.class}, new Object[]{DISPLAY_TYPE_MAIN, currMainType});
-            orginModes = filterOrginModes(orginModes);
-            displayInfo.setOrginModes(orginModes);
-            displayInfo.setModes(getFilterModeList(orginModes));
-            logd(" getMainDisplayInfo 5");
-            return displayInfo;
-        }
-        return null;
-    }
-
-    private static String getMainMode() {
-        Object rkDisplayOutputManager = null;
-        try {
-            rkDisplayOutputManager = Class.forName("android.os.RkDisplayOutputManager").newInstance();
-            logd("getDisplayInfoList->rkDisplayOutputManager->name:" + rkDisplayOutputManager.getClass().getName());
-        } catch (Exception e) {
-            // no handle
-        }
-        if (rkDisplayOutputManager == null)
-            return null;
-        logd(" getMainMode 1");
-        int[] mainTypes = (int[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getIfaceList", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_MAIN});
-        logd(" getMainMode 2");
-        if (mainTypes != null && mainTypes.length > 0) {
-            int currMainType = (Integer) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentInterface", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_MAIN});
-            return (String) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentMode", new Class[]{int.class, int.class}, new Object[]{DISPLAY_TYPE_MAIN, currMainType});
-        }
-        return null;
-    }
-
-    private static void setMainModeTemp(String mode) {
-        setMainMode(mode);
-        tmpSetMainMode = mode;
-    }
-
-    private static void confirmSaveMainMode(boolean isSave) {
-        if (tmpSetMainMode == null) {
-            return;
-        }
-        if (isSave) {
-            curSetMainMode = tmpSetMainMode;
-        } else {
-            setMainMode(curSetMainMode);
-            tmpSetMainMode = null;
-        }
-    }
-
-    private static void setMainMode(String mode) {
-        Object rkDisplayOutputManager = null;
-        try {
-            rkDisplayOutputManager = Class.forName("android.os.RkDisplayOutputManager").newInstance();
-            logd("getDisplayInfoList->rkDisplayOutputManager->name:" + rkDisplayOutputManager.getClass().getName());
-        } catch (Exception e) {
-        }
-        if (rkDisplayOutputManager == null)
-            return;
-        logd(" setMainMode 1");
-        int[] mainTypes = (int[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getIfaceList", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_MAIN});
-        logd(" setMainMode resolution=" + mode);
-        if (mainTypes != null && mainTypes.length > 0) {
-            logd(" setMainMode mode = " + mode);
-            int currMainType = (Integer) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentInterface", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_MAIN});
-            ReflectUtils.invokeMethod(rkDisplayOutputManager, "setMode", new Class[]{int.class, int.class, String.class}, new Object[]{DISPLAY_TYPE_MAIN, currMainType, mode});
-        }
-        logd(" setMainMode 3");
-    }
-
-    private static String tmpSetAuxMode = null;
-    private static String curSetAuxMode = "Auto";
-
-    public static DisplayInfo getAuxDisplayInfo() {
-        Object rkDisplayOutputManager = null;
-        try {
-            rkDisplayOutputManager = Class.forName("android.os.RkDisplayOutputManager").newInstance();
-            logd("getDisplayInfoList->rkDisplayOutputManager->name:" + rkDisplayOutputManager.getClass().getName());
-        } catch (Exception e) {
-        }
-        logd(" getAuxDisplayInfo 1");
-        int[] externalTypes = (int[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getIfaceList", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_AUX});
-        logd(" getAuxDisplayInfo 2");
-        if (externalTypes != null && externalTypes.length > 0) {
-            int currMainType = (Integer) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentInterface", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_AUX});
-            DisplayInfo displayInfo = new DisplayInfo();
-            displayInfo.setDisplayId(DISPLAY_TYPE_AUX);
-            logd(" getAuxDisplayInfo 3");
-            displayInfo.setDescription((String) ReflectUtils.invokeMethod(rkDisplayOutputManager, "typetoface", new Class[]{int.class}, new Object[]{currMainType}));
-            logd(" getAuxDisplayInfo 4");
-            displayInfo.setType(currMainType);
-            String[] orginModes = (String[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getModeList", new Class[]{int.class, int.class}, new Object[]{DISPLAY_TYPE_AUX, currMainType});
-            orginModes = filterOrginModes(orginModes);
-            displayInfo.setOrginModes(orginModes);
-            displayInfo.setModes(getFilterModeList(orginModes));
-            logd(" getAuxDisplayInfo 5");
-            return displayInfo;
-        }
-        return null;
-    }
-
-    private static String getAuxMode() {
-        Object rkDisplayOutputManager = null;
-        try {
-            rkDisplayOutputManager = Class.forName("android.os.RkDisplayOutputManager").newInstance();
-            logd("getDisplayInfoList->rkDisplayOutputManager->name:" + rkDisplayOutputManager.getClass().getName());
-        } catch (Exception e) {
-            // no handle
-        }
-        if (rkDisplayOutputManager == null)
-            return null;
-        logd(" getAuxMode 1");
-        int[] mainTypes = (int[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getIfaceList", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_AUX});
-        logd(" getAuxMode 2");
-        if (mainTypes != null && mainTypes.length > 0) {
-            int currMainType = (Integer) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentInterface", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_AUX});
-            return (String) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentMode", new Class[]{int.class, int.class}, new Object[]{DISPLAY_TYPE_AUX, currMainType});
-        }
-        return null;
-    }
-
-    private static void setAuxModeTemp(String reso) {
-        setAuxMode(reso);
-        tmpSetAuxMode = reso;
-    }
-
-    private static void confirmSaveAuxMode(boolean isSave) {
-        if (tmpSetAuxMode == null) {
-            return;
-        }
-        if (isSave) {
-            curSetAuxMode = tmpSetAuxMode;
-        } else {
-            setAuxMode(curSetAuxMode);
-            tmpSetAuxMode = null;
-        }
-    }
-
-    private static void setAuxMode(String reso) {
-        Object rkDisplayOutputManager = null;
-        try {
-            rkDisplayOutputManager = Class.forName("android.os.RkDisplayOutputManager").newInstance();
-            logd("getDisplayInfoList->rkDisplayOutputManager->name:" + rkDisplayOutputManager.getClass().getName());
-        } catch (Exception e) {
-        }
-        if (rkDisplayOutputManager == null)
-            return;
-        logd(" setAuxMode 1");
-        int[] mainTypes = (int[]) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getIfaceList", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_AUX});
-        logd(" setAuxMode resolution=" + reso);
-        if (mainTypes != null && mainTypes.length > 0) {
-            int currMainType = (Integer) ReflectUtils.invokeMethod(rkDisplayOutputManager, "getCurrentInterface", new Class[]{int.class}, new Object[]{DISPLAY_TYPE_AUX});
-            ReflectUtils.invokeMethod(rkDisplayOutputManager, "setMode", new Class[]{int.class, int.class, String.class}, new Object[]{DISPLAY_TYPE_AUX, currMainType, reso});
-        }
-    }
+    private static String tmpSetMode = null;
 
     private static String[] filterOrginModes(String[] modes) {
         if (modes == null)

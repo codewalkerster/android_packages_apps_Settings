@@ -1,5 +1,6 @@
 package com.android.settings.display;
 
+import android.graphics.Rect;
 import android.os.Handler;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -46,6 +47,7 @@ public class ScreenScaleActivity extends Activity {
 
     public static final int SYSTEM_UI_FLAG_SHOW_FULLSCREEN = 0x00000004;
     public static final String EXTRA_DISPLAY_INFO = "extra_display_info";
+    public static final String EXTRA_DISPLAY = "extra_display";
 
     private int mScreenWidth = 0;
     private int mScreenHeight = 0;
@@ -65,7 +67,7 @@ public class ScreenScaleActivity extends Activity {
     /**
      * 当前设备的显示信息
      */
-    private DisplayInfo mDisplayInfo;
+    private int display;
     /**
      * 左侧缩放
      */
@@ -287,8 +289,8 @@ public class ScreenScaleActivity extends Activity {
         mLeftScale += 1;
         if (mLeftScale > MAX_SCALE)
             mLeftScale = MAX_SCALE;
-        setOverScanProperty(OVERSCAN_LEFT, mLeftScale);
-        setOverScanProperty(OVERSCAN_RIGHT, mLeftScale);
+        DrmDisplaySetting.setOverScan(display, OVERSCAN_LEFT, mLeftScale);
+        DrmDisplaySetting.setOverScan(display, OVERSCAN_RIGHT, mLeftScale);
         if (!isClick) {
             mRightButton.setImageResource(R.drawable.ic_screen_scale_right_pressed);
             mHandler.removeMessages(RightButtonResume);
@@ -300,8 +302,8 @@ public class ScreenScaleActivity extends Activity {
         mLeftScale -= 1;
         if (mLeftScale < MIN_SCALE)
             mLeftScale = MIN_SCALE;
-        setOverScanProperty(OVERSCAN_LEFT, mLeftScale);
-        setOverScanProperty(OVERSCAN_RIGHT, mLeftScale);
+        DrmDisplaySetting.setOverScan(display, OVERSCAN_LEFT, mLeftScale);
+        DrmDisplaySetting.setOverScan(display, OVERSCAN_RIGHT, mLeftScale);
         if (!isClick) {
             mLeftButton.setImageResource(R.drawable.ic_screen_scale_left_pressed);
             mHandler.removeMessages(LeftButtonResume);
@@ -313,8 +315,8 @@ public class ScreenScaleActivity extends Activity {
         mBottomScale -= 1;
         if (mBottomScale < MIN_SCALE)
             mBottomScale = MIN_SCALE;
-        setOverScanProperty(OVERSCAN_TOP, mBottomScale);
-        setOverScanProperty(OVERSCAN_BOTTOM, mBottomScale);
+        DrmDisplaySetting.setOverScan(display, OVERSCAN_TOP, mBottomScale);
+        DrmDisplaySetting.setOverScan(display, OVERSCAN_BOTTOM, mBottomScale);
         if (!isClick) {
             mUpButton.setImageResource(R.drawable.ic_screen_scale_up_pressed);
             mHandler.removeMessages(UpButtonResume);
@@ -326,8 +328,8 @@ public class ScreenScaleActivity extends Activity {
         mBottomScale += 1;
         if (mBottomScale > MAX_SCALE)
             mBottomScale = MAX_SCALE;
-        setOverScanProperty(OVERSCAN_TOP, mBottomScale);
-        setOverScanProperty(OVERSCAN_BOTTOM, mBottomScale);
+        DrmDisplaySetting.setOverScan(display, OVERSCAN_TOP, mBottomScale);
+        DrmDisplaySetting.setOverScan(display, OVERSCAN_BOTTOM, mBottomScale);
         if (!isClick) {
             mDownButton.setImageResource(R.drawable.ic_screen_scale_down_pressed);
             mHandler.removeMessages(DownButtonResume);
@@ -339,42 +341,15 @@ public class ScreenScaleActivity extends Activity {
      * 初始化数据
      */
     public void initData() {
-        mDisplayInfo = (DisplayInfo) getIntent().getSerializableExtra(EXTRA_DISPLAY_INFO);
-        if (null == mDisplayInfo) {
+        display = getIntent().getIntExtra(EXTRA_DISPLAY, -1);
+        if (-1 == display) {
             Toast.makeText(this, "not display info", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
-        String overScan;
-        if (mDisplayInfo.getDisplayId() == 0) {
-            overScan = SystemProperties.get(PROPERTY_OVERSCAN_MAIN);
-        } else {
-            overScan = SystemProperties.get(PROPERTY_OVERSCAN_AUX);
-        }
-        if (TextUtils.isEmpty(overScan))
-            return;
-        try {
-            mLeftScale = Integer.parseInt(overScan.split(",")[0].split("\\s+")[1]);
-        } catch (Exception e) {
-        }
-        try {
-            mBottomScale = Integer.parseInt(overScan.split(",")[3]);
-        } catch (Exception e) {
-        }
-    }
-
-    private void setOverScanProperty(int direction, int value) {
-        Object rkDisplayOutputManager = null;
-        try {
-            rkDisplayOutputManager = Class.forName("android.os.RkDisplayOutputManager").newInstance();
-        } catch (Exception e) {
-            // no handle
-        }
-        if (rkDisplayOutputManager == null) {
-            return;
-        }
-        Log.i(TAG, "setOverScanProperty->time1:" + System.currentTimeMillis() + "mDisplayInfo.getDisplayId()=" + mDisplayInfo.getDisplayId());
-        ReflectUtils.invokeMethod(rkDisplayOutputManager, "setOverScan", new Class[]{int.class, int.class, int.class}, new Object[]{mDisplayInfo.getDisplayId(), direction, value});
-        Log.i(TAG, "setOverScanProperty->time2:" + System.currentTimeMillis() + "mDisplayInfo.getDisplayId()=" + mDisplayInfo.getDisplayId());
+        Rect overScan = DrmDisplaySetting.getOverScan(display);
+        LOGD("overScan " + overScan);
+        mLeftScale = overScan.left;
+        mBottomScale = overScan.bottom;
     }
 }

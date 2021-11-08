@@ -34,10 +34,13 @@ import com.android.settings.R;
 import com.android.settings.SettingsPreferenceFragment;
 
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static com.android.settings.display.HdmiSettings.DISPLAY_SHOW_SETTINGS.DOUBLE_SHOW;
-import static com.android.settings.display.HdmiSettings.DISPLAY_SHOW_SETTINGS.ONLY_SHOW_AUX;
-import static com.android.settings.display.HdmiSettings.DISPLAY_SHOW_SETTINGS.ONLY_SHOW_MAIN;
+import static com.android.settings.display.DrmDisplaySetting.DPY_STATUS_CONNECTED;
 
 public class HdmiSettings extends SettingsPreferenceFragment
         implements Preference.OnPreferenceChangeListener,
@@ -47,18 +50,12 @@ public class HdmiSettings extends SettingsPreferenceFragment
      */
     private static final String TAG = "HdmiSettings";
     private static final String KEY_SYSTEM_ROTATION = "system_rotation";
-    private static final String KEY_MAIN_CATEGORY = "main_category";
-    private static final String KEY_MAIN_SWITCH = "main_switch";
-    private static final String KEY_MAIN_RESOLUTION = "main_resolution";
-    private static final String KEY_MAIN_SCALE = "main_screen_scale";
+    private static final String KEY_PRE_CATE = "Display";
+    private static final String KEY_PRE_RESOLUTION = "Resolution";
+    private static final String KEY_PRE_SCREEN_SCALE = "ScreenScale";
     private static final String KEY_AUX_CATEGORY = "aux_category";
-    private static final String KEY_AUX_SWITCH = "aux_switch";
-    private static final String KEY_AUX_RESOLUTION = "aux_resolution";
-    private static final String KEY_AUX_SCALE = "aux_screen_scale";
     private static final String KEY_AUX_SCREEN_VH = "aux_screen_vh";
     private static final String KEY_AUX_SCREEN_VH_LIST = "aux_screen_vhlist";
-    private static final String SYS_HDMI_STATE = "vendor.hdmi_status.aux";
-    private static final String SYS_DP_STATE = "vendor.dp_status.aux";
     private final static String SYS_NODE_HDMI_STATUS =
             "/sys/devices/platform/display-subsystem/drm/card0/card0-HDMI-A-1/status";
     private final static String SYS_NODE_DP_STATUS =
@@ -75,41 +72,27 @@ public class HdmiSettings extends SettingsPreferenceFragment
     private static final long SWITCH_DEVICE_DELAY_TIME = 200;
     private static final long TIME_WAIT_DEVICE_CONNECT = 10000;
     //we found setprop not effect sometimes if control quickly
-    private static final boolean USED_NODE_SWITCH = true;
     private static final boolean USED_OFFON_RESOLUTION = false;
 
     /**
      * TODO
-     * 目前hwc只配置了hdmi和dp的开关，如果是其他的设备，需要配合修改，才能进行开关
-     * sys.hdmi_status.aux：/sys/devices/platform/display-subsystem/drm/card0/card0-HDMI-A-1/status
-     * sys.hdmi_status.aux：/sys/devices/platform/display-subsystem/drm/card0/card0-DP-1/status
+     * 目前hwc配置了prop属性开关hdmi和dp，如果是其他的设备，需要配合修改，才能进行开关。因此直接写节点进行开关
+     * vendor.hdmi_status.aux：/sys/devices/platform/display-subsystem/drm/card0/card0-HDMI-A-1/status
+     * vendor.dp_status.aux暂无：/sys/devices/platform/display-subsystem/drm/card0/card0-DP-1/status
      */
-    private String sys_main_state = SYS_HDMI_STATE;
-    private String sys_aux_state = SYS_DP_STATE;
     private String main_switch_node = SYS_NODE_HDMI_STATUS;
     private String aux_switch_node = SYS_NODE_DP_STATUS;
 
     private ListPreference mSystemRotation;
-    private PreferenceCategory mMainCategory;
-    private SwitchPreference mMainSwitch;
-    private HdmiListPreference mMainResolution;
-    private Preference mMainScale;
     private PreferenceCategory mAuxCategory;
-    private SwitchPreference mAuxSwitch;
-    private HdmiListPreference mAuxResolution;
-    private Preference mAuxScale;
     private CheckBoxPreference mAuxScreenVH;
     private ListPreference mAuxScreenVHList;
-    private Context context;
-    private String mOldMainResolution;
-    private String mOldAuxResolution;
-    protected DisplayInfo mMainDisplayInfo;
-    protected DisplayInfo mAuxDisplayInfo;
+    private Context mContext;
+    private DisplayInfo mSelectDisplayInfo;
     private DisplayManager mDisplayManager;
     private DisplayListener mDisplayListener;
     private IWindowManager mWindowManager;
     private ProgressDialog mProgressDialog;
-    private DISPLAY_SHOW_SETTINGS mShowSettings = ONLY_SHOW_AUX;
     private boolean mDestory;
     private boolean mEnableDisplayListener;
     private Object mLock = new Object();//maybe android reboot if not lock with new thread
@@ -117,19 +100,12 @@ public class HdmiSettings extends SettingsPreferenceFragment
     private long mWaitDialogCountTime;
     private int mRotation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 
-    enum DISPLAY_SHOW_SETTINGS {
-        ONLY_SHOW_MAIN,
-        ONLY_SHOW_AUX,
-        DOUBLE_SHOW
-    }
+    private HashMap<Integer, DisplayInfo> mDisplayInfoList = new HashMap<Integer, DisplayInfo>();
 
     enum ITEM_CONTROL {
-        SHOW_DISPLAY_ITEM_MAIN,//展示主屏分辨率选项
-        SHOW_DISPLAY_ITEM_AUX,//展示副屏分辨率选项
-        CHANGE_RESOLUTION_MAIN,//切换主屏分辨率
-        CHANGE_RESOLUTION_AUX,//切换副屏分辨率
-        REFRESH_MAIN_INFO,//刷新主屏信息
-        REFRESH_AUX_INFO,//刷新副屏信息
+        SHOW_RESOLUTION_ITEM,//展示分辨率选项
+        CHANGE_RESOLUTION,//切换分辨率
+        REFRESH_DISPLAY_STATUS_INFO,//刷新主屏信息
     }
 
     private Handler mHandler = new Handler() {
@@ -143,14 +119,12 @@ public class HdmiSettings extends SettingsPreferenceFragment
                 new Thread() {
                     @Override
                     public void run() {
-                        if (ITEM_CONTROL.SHOW_DISPLAY_ITEM_MAIN == control
-                                || ITEM_CONTROL.CHANGE_RESOLUTION_MAIN == control
-                                || ITEM_CONTROL.REFRESH_MAIN_INFO == control) {
-                            updateMainState(control);
-                        } else if (ITEM_CONTROL.SHOW_DISPLAY_ITEM_AUX == control
-                                || ITEM_CONTROL.CHANGE_RESOLUTION_AUX == control
-                                || ITEM_CONTROL.REFRESH_AUX_INFO == control) {
-                            updateAuxState(control);
+                        if (ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO == control
+                                || ITEM_CONTROL.CHANGE_RESOLUTION == control) {
+                            getDisplayStatusInfo();
+                        } else if (ITEM_CONTROL.SHOW_RESOLUTION_ITEM == control) {
+                            getDisplayStatusInfo();
+                            getDisplayResolutionInfo(mSelectDisplayInfo);
                         }
                         Message message = new Message();
                         message.what = MSG_UPDATE_STATUS_UI;
@@ -160,122 +134,53 @@ public class HdmiSettings extends SettingsPreferenceFragment
                 }.start();
             } else if (MSG_UPDATE_STATUS_UI == msg.what) {
                 ITEM_CONTROL control = (ITEM_CONTROL) msg.obj;
-                if (ITEM_CONTROL.SHOW_DISPLAY_ITEM_MAIN == control) {
-                    updateMainStateUI(control);
-                    if (mMainResolution.isEnabled()) {
-                        mMainResolution.showClickDialogItem();
+                if (ITEM_CONTROL.SHOW_RESOLUTION_ITEM == control) {
+                    updateStateUI();
+                    if (null != mSelectDisplayInfo
+                            && DPY_STATUS_CONNECTED == mSelectDisplayInfo.getStatus()) {
+                        showResolutionItemUI(mSelectDisplayInfo);
                     }
-                } else if (ITEM_CONTROL.SHOW_DISPLAY_ITEM_AUX == control) {
-                    updateAuxStateUI(control);
-                    if (mAuxResolution.isEnabled()) {
-                        mAuxResolution.showClickDialogItem();
-                    }
-                } else if (ITEM_CONTROL.CHANGE_RESOLUTION_MAIN == control) {
-                    updateMainStateUI(control);
-                    showConfirmSetMainModeDialog();
-                } else if (ITEM_CONTROL.CHANGE_RESOLUTION_AUX == control) {
-                    updateAuxStateUI(control);
-                    showConfirmSetAuxModeDialog();
-                } else if (ITEM_CONTROL.REFRESH_MAIN_INFO == control) {
-                    updateMainStateUI(control);
-                } else if (ITEM_CONTROL.REFRESH_AUX_INFO == control) {
-                    updateAuxStateUI(control);
+                    hideWaitingDialog();
+                } else if (ITEM_CONTROL.CHANGE_RESOLUTION == control) {
+                    updateStateUI();
+                    showConfirmSetModeDialog();
+                    hideWaitingDialog();
+                } else if (ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO == control) {
+                    updateStateUI();
+                    hideWaitingDialog();
                 }
                 mEnableDisplayListener = true;
             } else if (MSG_SWITCH_DEVICE_STATUS == msg.what) {
                 final ITEM_CONTROL control = (ITEM_CONTROL) msg.obj;
                 if (SWITCH_STATUS_ON == msg.arg1) {
-                    if (ITEM_CONTROL.CHANGE_RESOLUTION_MAIN == control
-                            || ITEM_CONTROL.REFRESH_MAIN_INFO == control) {
+                    if (ITEM_CONTROL.CHANGE_RESOLUTION == control
+                            || ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO == control) {
                         showWaitingDialog(R.string.dialog_wait_screen_connect);
-                        if (USED_NODE_SWITCH) {
-                            mMainSwitch.setEnabled(true);
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    write2Node(main_switch_node, "detect");
-                                    mWaitDialogCountTime = TIME_WAIT_DEVICE_CONNECT / 1000;
-                                    mHandler.removeMessages(MSG_UPDATE_DIALOG_INFO);
-                                    mHandler.sendEmptyMessage(MSG_UPDATE_DIALOG_INFO);
-                                    sendUpdateStateMsg(control, TIME_WAIT_DEVICE_CONNECT);
-                                }
-                            }.start();
-                        } else {
-                            SystemProperties.set(sys_main_state, "on");
-                            mMainSwitch.setEnabled(true);
-                            sendUpdateStateMsg(control, 2000);
-                        }
-                    } else if (ITEM_CONTROL.CHANGE_RESOLUTION_AUX == control
-                            || ITEM_CONTROL.REFRESH_AUX_INFO == control) {
-                        showWaitingDialog(R.string.dialog_wait_screen_connect);
-                        if (USED_NODE_SWITCH) {
-                            mAuxSwitch.setEnabled(true);
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    write2Node(aux_switch_node, "detect");
-                                    mWaitDialogCountTime = TIME_WAIT_DEVICE_CONNECT / 1000;
-                                    mHandler.removeMessages(MSG_UPDATE_DIALOG_INFO);
-                                    mHandler.sendEmptyMessage(MSG_UPDATE_DIALOG_INFO);
-                                    sendUpdateStateMsg(control, TIME_WAIT_DEVICE_CONNECT);
-                                }
-                            }.start();
-                        } else {
-                            SystemProperties.set(sys_aux_state, "on");
-                            mAuxSwitch.setEnabled(true);
-                            sendUpdateStateMsg(control, 2000);
-                        }
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                write2Node(main_switch_node, "detect");
+                                mWaitDialogCountTime = TIME_WAIT_DEVICE_CONNECT / 1000;
+                                mHandler.removeMessages(MSG_UPDATE_DIALOG_INFO);
+                                mHandler.sendEmptyMessage(MSG_UPDATE_DIALOG_INFO);
+                                sendUpdateStateMsg(control, TIME_WAIT_DEVICE_CONNECT);
+                            }
+                        }.start();
                     }
                 } else {
-                    if (ITEM_CONTROL.CHANGE_RESOLUTION_MAIN == control
-                            || ITEM_CONTROL.REFRESH_MAIN_INFO == control) {
-                        if (USED_NODE_SWITCH) {
-                            mMainSwitch.setEnabled(false);
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    write2Node(main_switch_node, "off");
-                                    if (SWITCH_STATUS_OFF_ON == msg.arg1) {
-                                        sendSwitchDeviceOffOnMsg(control, SWITCH_STATUS_ON);
-                                    } else {
-                                        sendUpdateStateMsg(control, 2000);
-                                    }
+                    if (ITEM_CONTROL.CHANGE_RESOLUTION == control
+                            || ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO == control) {
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                write2Node(main_switch_node, "off");
+                                if (SWITCH_STATUS_OFF_ON == msg.arg1) {
+                                    sendSwitchDeviceOffOnMsg(control, SWITCH_STATUS_ON);
+                                } else {
+                                    sendUpdateStateMsg(control, 2000);
                                 }
-                            }.start();
-                        } else {
-                            SystemProperties.set(sys_main_state, "off");
-                            mMainSwitch.setEnabled(false);
-                            sendUpdateStateMsg(control, 2000);
-                            if (SWITCH_STATUS_OFF_ON == msg.arg1) {
-                                sendSwitchDeviceOffOnMsg(control, SWITCH_STATUS_ON);
-                            } else {
-                                sendUpdateStateMsg(control, 2000);
                             }
-                        }
-                    } else if (ITEM_CONTROL.CHANGE_RESOLUTION_AUX == control
-                            || ITEM_CONTROL.REFRESH_AUX_INFO == control) {
-                        if (USED_NODE_SWITCH) {
-                            mAuxSwitch.setEnabled(false);
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    write2Node(aux_switch_node, "off");
-                                    if (SWITCH_STATUS_OFF_ON == msg.arg1) {
-                                        sendSwitchDeviceOffOnMsg(control, SWITCH_STATUS_ON);
-                                    } else {
-                                        sendUpdateStateMsg(control, 2000);
-                                    }
-                                }
-                            }.start();
-                        } else {
-                            SystemProperties.set(sys_aux_state, "off");
-                            mAuxSwitch.setEnabled(false);
-                            if (SWITCH_STATUS_OFF_ON == msg.arg1) {
-                                sendSwitchDeviceOffOnMsg(control, SWITCH_STATUS_ON);
-                            } else {
-                                sendUpdateStateMsg(control, 2000);
-                            }
-                        }
+                        }.start();
                     }
                 }
             } else if (MSG_UPDATE_DIALOG_INFO == msg.what) {
@@ -291,11 +196,7 @@ public class HdmiSettings extends SettingsPreferenceFragment
             } else if (MSG_SHOW_CONFIRM_DIALOG == msg.what) {
                 mHandler.removeMessages(MSG_SHOW_CONFIRM_DIALOG);
                 hideWaitingDialog();
-                if (ITEM_CONTROL.CHANGE_RESOLUTION_MAIN == msg.obj) {
-                    showConfirmSetMainModeDialog();
-                } else if (ITEM_CONTROL.CHANGE_RESOLUTION_AUX == msg.obj) {
-                    showConfirmSetAuxModeDialog();
-                }
+                showConfirmSetModeDialog();
             }
         }
     };
@@ -324,67 +225,15 @@ public class HdmiSettings extends SettingsPreferenceFragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        context = getActivity();
+        mContext = getActivity();
         mRotation = getActivity().getRequestedOrientation();
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-        mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+        mDisplayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
         mWindowManager = IWindowManager.Stub.asInterface(
                 ServiceManager.getService(Context.WINDOW_SERVICE));
         mDisplayListener = new DisplayListener();
         addPreferencesFromResource(R.xml.hdmi_settings);
-        int value = 0;
-        String currentMainConfig = SystemProperties.get("vendor.hwc.device.primary");
-        boolean hasMainDisplay = false;
-        if (null != currentMainConfig) {
-            currentMainConfig = currentMainConfig.replaceAll("eDP", "");
-            hasMainDisplay = currentMainConfig.contains("HDMI")
-                    || currentMainConfig.contains("DP");
-        }
-        String currentAuxConfig = SystemProperties.get("vendor.hwc.device.extend");
-        boolean hasAuxDisplay = false;
-        if (null != currentAuxConfig) {
-            currentAuxConfig = currentAuxConfig.replaceAll("eDP", "");
-            hasAuxDisplay = currentAuxConfig.contains("HDMI")
-                    || currentAuxConfig.contains("DP");
-        }
 
-        if (hasMainDisplay) {
-            value = hasAuxDisplay ? 2 : 1;
-        }
-        Log.d(TAG, "primary=" + currentMainConfig + ", extend=" + currentAuxConfig
-                + ", hasMain=" + hasMainDisplay + ", hasAux=" + hasAuxDisplay
-                + ", value=" + value);
-        switch (value) {
-            case 0: {
-                mShowSettings = ONLY_SHOW_AUX;
-                sys_aux_state = SYS_HDMI_STATE;
-                aux_switch_node = SYS_NODE_HDMI_STATUS;
-                break;
-            }
-            case 1: {
-                mShowSettings = ONLY_SHOW_MAIN;
-                sys_main_state = SYS_HDMI_STATE;
-                main_switch_node = SYS_NODE_HDMI_STATUS;
-                break;
-            }
-            default: {
-                mShowSettings = DOUBLE_SHOW;
-                String primary = SystemProperties.get("vendor.hwc.device.primary", "");
-                String extend = SystemProperties.get("vendor.hwc.device.extend", "");
-                if (primary.contains("HDMI")) {//配置hdmi为主显
-                    sys_main_state = SYS_HDMI_STATE;
-                    sys_aux_state = SYS_DP_STATE;
-                    main_switch_node = SYS_NODE_HDMI_STATUS;
-                    aux_switch_node = SYS_NODE_DP_STATUS;
-                } else if (extend.contains("HDMI")) {//主显不配hdmi,副显配置hdmi
-                    sys_aux_state = SYS_HDMI_STATE;
-                    sys_main_state = SYS_DP_STATE;
-                    main_switch_node = SYS_NODE_DP_STATUS;
-                    aux_switch_node = SYS_NODE_HDMI_STATUS;
-                }
-                break;
-            }
-        }
         init();
         mEnableDisplayListener = true;
         Log.d(TAG, "---------onCreate---------------------");
@@ -481,122 +330,70 @@ public class HdmiSettings extends SettingsPreferenceFragment
         } else {
             removePreference(KEY_SYSTEM_ROTATION);
         }
-        //main
-        if (mShowSettings != ONLY_SHOW_AUX) {
-            mMainDisplayInfo = getDisplayInfo(0);
-            //restore main switch value
-            mMainCategory = (PreferenceCategory) findPreference(KEY_MAIN_CATEGORY);
-            if (mShowSettings == DOUBLE_SHOW) {
-                mMainCategory.setTitle(R.string.screen_main_title);
+        int displayNumber = DrmDisplaySetting.getDisplayNumber();
+        Log.v(TAG, "displayNumber=" + displayNumber);
+        String[] connectorInfos = DrmDisplaySetting.getConnectorInfo();
+        if (null != connectorInfos) {
+            for (int i = 0; i < connectorInfos.length; i++) {
+                Log.v(TAG, i + " connectorInfo====" + connectorInfos[i]);
             }
-            String switchState = SystemProperties.get(sys_main_state, "on");
-            mMainSwitch = (SwitchPreference) findPreference(KEY_MAIN_SWITCH);
-            if ("on".equals(switchState)) {
-                mMainSwitch.setChecked(true);
-            } else {
-                mMainSwitch.setChecked(false);
-            }
-            mMainSwitch.setOnPreferenceChangeListener(this);
-            mMainCategory.removePreference(mMainSwitch);
-            mMainResolution = (HdmiListPreference) findPreference(KEY_MAIN_RESOLUTION);
-            mMainResolution.setOnPreferenceChangeListener(this);
-            mMainResolution.setOnPreferenceClickListener(this);
-            if (mMainDisplayInfo != null) {
-                mMainResolution.setEntries(DrmDisplaySetting.getDisplayModes(mMainDisplayInfo).toArray(new String[0]));
-                mMainResolution.setEntryValues(DrmDisplaySetting.getDisplayModes(mMainDisplayInfo).toArray(new String[0]));
-                mMainResolution.setEnabled(true);
-            } else {
-                mMainResolution.setEnabled(false);
-            }
-            mMainScale = findPreference(KEY_MAIN_SCALE);
-            mMainScale.setOnPreferenceClickListener(this);
-            if (null == mMainDisplayInfo) {
-                mMainScale.setEnabled(false);
-            } else {
-                mMainScale.setEnabled(true);
-            }
-            //mMainCategory.removePreference(mMainScale);
-            //mMainCategory.removePreference(mMainSwitch);
-        } else {
-            removePreference(KEY_MAIN_CATEGORY);
         }
-
-        //aux
-        if (mShowSettings != ONLY_SHOW_MAIN) {
-            mAuxDisplayInfo = getDisplayInfo(1);
-            mAuxCategory = (PreferenceCategory) findPreference(KEY_AUX_CATEGORY);
-            if (mShowSettings == DOUBLE_SHOW) {
-                mAuxCategory.setTitle(R.string.screen_aux_title);
+        mDisplayInfoList.clear();
+        for (int i = 0; i < displayNumber; i++) {
+            String typeName = "";
+            String id = "";
+            if (null != connectorInfos && connectorInfos.length == displayNumber) {
+                String[] rets = connectorInfos[i].split(",");
+                if (null != rets && rets.length > 2) {
+                    String type = rets[0].replaceAll("type:", "");
+                    typeName = DrmDisplaySetting.CONNECTOR_DISPLAY_NAME.get(type);
+                    id = rets[1].replaceAll("id:", "");
+                    Log.v(TAG, "type======" + type + ", typeName=" + typeName + ", id=" + id);
+                    if (DrmDisplaySetting.DRM_MODE_CONNECTOR_VIRTUAL.equals(typeName)
+                            || DrmDisplaySetting.DRM_MODE_CONNECTOR_eDP.equals(typeName)
+                            || DrmDisplaySetting.DRM_MODE_CONNECTOR_DSI.equals(typeName)) {
+                        continue;
+                    }
+                }
             }
-            mAuxSwitch = (SwitchPreference) findPreference(KEY_AUX_SWITCH);
-            String switchState = SystemProperties.get(sys_aux_state, "on");
-            if ("on".equals(switchState)) {
-                mAuxSwitch.setChecked(true);
+            int display = i;
+            PreferenceCategory category = new PreferenceCategory(mContext);
+            category.setKey(KEY_PRE_CATE + display);
+            if ("0".equals(id) || "".equals(id)) {
+                category.setTitle(typeName);
             } else {
-                mAuxSwitch.setChecked(false);
+                category.setTitle(typeName + "-" + id);
             }
-            mAuxSwitch.setOnPreferenceChangeListener(this);
-            mAuxCategory.removePreference(mAuxSwitch);
-            mAuxResolution = (HdmiListPreference) findPreference(KEY_AUX_RESOLUTION);
-            mAuxResolution.setOnPreferenceChangeListener(this);
-            mAuxResolution.setOnPreferenceClickListener(this);
-            if (mAuxDisplayInfo != null) {
-                mAuxResolution.setEntries(DrmDisplaySetting.getDisplayModes(mAuxDisplayInfo).toArray(new String[0]));
-                mAuxResolution.setEntryValues(DrmDisplaySetting.getDisplayModes(mAuxDisplayInfo).toArray(new String[0]));
-                mAuxResolution.setEnabled(true);
-            } else {
-                mAuxResolution.setEnabled(false);
-            }
-            mAuxScale = findPreference(KEY_AUX_SCALE);
-            mAuxScale.setOnPreferenceClickListener(this);
-            if (null == mAuxDisplayInfo) {
-                mAuxScale.setEnabled(false);
-            } else {
-                mAuxScale.setEnabled(true);
-            }
-            //mAuxCategory.removePreference(mAuxScale);
-
-            mAuxScreenVH = (CheckBoxPreference) findPreference(KEY_AUX_SCREEN_VH);
-            mAuxScreenVH.setChecked(SystemProperties.getBoolean("persist.sys.rotation.efull", false));
-            mAuxScreenVH.setOnPreferenceChangeListener(this);
-            mAuxCategory.removePreference(mAuxScreenVH);
-            mAuxScreenVHList = (ListPreference) findPreference(KEY_AUX_SCREEN_VH_LIST);
-            mAuxScreenVHList.setOnPreferenceChangeListener(this);
-            mAuxScreenVHList.setOnPreferenceClickListener(this);
-            mAuxCategory.removePreference(mAuxScreenVHList);
-        } else {
-            removePreference(KEY_AUX_CATEGORY);
+            getPreferenceScreen().addPreference(category);
+            //add resolution preference
+            HdmiListPreference resolutionPreference = new HdmiListPreference(mContext);
+            resolutionPreference.setKey(KEY_PRE_RESOLUTION + display);
+            resolutionPreference.setTitle(mContext.getString(R.string.screen_resolution));
+            resolutionPreference.setOnPreferenceClickListener(this);
+            resolutionPreference.setOnPreferenceChangeListener(this);
+            category.addPreference(resolutionPreference);
+            //add scale preference
+            Preference scalePreference = new Preference(mContext);
+            scalePreference.setKey(KEY_PRE_SCREEN_SCALE + display);
+            scalePreference.setTitle(mContext.getString(R.string.screen_scale));
+            scalePreference.setOnPreferenceClickListener(this);
+            category.addPreference(scalePreference);
+            category.setEnabled(false);
+            DisplayInfo displayInfo = new DisplayInfo();
+            displayInfo.setDisplayNo(display);
+            mDisplayInfoList.put(display, displayInfo);
         }
-    }
+        sendUpdateStateMsg(ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO, 0);
 
-    protected DisplayInfo getDisplayInfo(int displayId) {
-        DrmDisplaySetting.updateDisplayInfos();
-        return DrmDisplaySetting.getDisplayInfo(displayId);
-    }
-
-    /**
-     * 获取当前分辨率值
-     */
-    public void updateMainResolutionValue() {
-        String resolutionValue = null;
-        mMainDisplayInfo = getDisplayInfo(0);
-        if (mMainDisplayInfo != null) {
-            resolutionValue = DrmDisplaySetting.getCurDisplayMode(mMainDisplayInfo);
-            mMainDisplayInfo.setCurrentResolution(resolutionValue);
-        }
-        Log.i(TAG, "main resolutionValue:" + resolutionValue);
-        mOldMainResolution = resolutionValue;
-    }
-
-    public void updateAuxResolutionValue() {
-        String resolutionValue = null;
-        mAuxDisplayInfo = getDisplayInfo(1);
-        if (mAuxDisplayInfo != null) {
-            resolutionValue = DrmDisplaySetting.getCurDisplayMode(mAuxDisplayInfo);
-            mAuxDisplayInfo.setCurrentResolution(resolutionValue);
-        }
-        Log.i(TAG, "aux resolutionValue:" + resolutionValue);
-        mOldAuxResolution = resolutionValue;
+        mAuxCategory = (PreferenceCategory) findPreference(KEY_AUX_CATEGORY);
+        mAuxScreenVH = (CheckBoxPreference) findPreference(KEY_AUX_SCREEN_VH);
+        mAuxScreenVH.setChecked(SystemProperties.getBoolean("persist.sys.rotation.efull", false));
+        mAuxScreenVH.setOnPreferenceChangeListener(this);
+        mAuxCategory.removePreference(mAuxScreenVH);
+        mAuxScreenVHList = (ListPreference) findPreference(KEY_AUX_SCREEN_VH_LIST);
+        mAuxScreenVHList.setOnPreferenceChangeListener(this);
+        mAuxScreenVHList.setOnPreferenceClickListener(this);
+        mAuxCategory.removePreference(mAuxScreenVHList);
     }
 
     private void sendSwitchDeviceOffOnMsg(ITEM_CONTROL control, int status) {
@@ -629,29 +426,24 @@ public class HdmiSettings extends SettingsPreferenceFragment
     }
 
     private void updateResolution(final ITEM_CONTROL control, final int index) {
-        if (ITEM_CONTROL.CHANGE_RESOLUTION_MAIN == control) {
-            mMainResolution.setEnabled(false);
-            mMainScale.setEnabled(false);
-            if (null == mMainDisplayInfo) {
-                return;
-            }
-        } else if (ITEM_CONTROL.CHANGE_RESOLUTION_AUX == control) {
-            mAuxResolution.setEnabled(false);
-            mAuxScale.setEnabled(false);
-            if (null == mAuxDisplayInfo) {
-                return;
-            }
-        }
         showWaitingDialog(R.string.dialog_update_resolution);
         mEnableDisplayListener = false;
         new Thread() {
             @Override
             public void run() {
-                if (ITEM_CONTROL.CHANGE_RESOLUTION_MAIN == control) {
+                if (ITEM_CONTROL.CHANGE_RESOLUTION == control) {
                     synchronized (mLock) {
-                        mMainDisplayInfo = getDisplayInfo(0);
-                        if (mMainDisplayInfo != null) {
-                            DrmDisplaySetting.setDisplayModeTemp(mMainDisplayInfo, index);
+                        int display = mSelectDisplayInfo.getDisplayNo();
+                        DrmDisplaySetting.updateDisplayInfos();
+                        DrmDisplaySetting.updateDisplayModesInfo(mSelectDisplayInfo);
+                        int status = DrmDisplaySetting.getCurrentDpyConnState(display);
+                        mSelectDisplayInfo.setStatus(status);
+                        String[] modes = mSelectDisplayInfo.getOrginModes();
+                        Log.v(TAG, "display " + display + ", status=" + status + ", modes=" + modes);
+                        if (DPY_STATUS_CONNECTED == status && null != modes && modes.length > 0) {
+                            DrmDisplaySetting.setDisplayModeTemp(mSelectDisplayInfo, index);
+//                            String mode = Arrays.asList(modes).get(index);
+//                            DrmDisplaySetting.setMode(display, mode);
                             if (USED_OFFON_RESOLUTION) {
                                 sendSwitchDeviceOffOnMsg(control, SWITCH_STATUS_OFF_ON);
                             } else {
@@ -663,27 +455,7 @@ public class HdmiSettings extends SettingsPreferenceFragment
                         } else {
                             Message message = new Message();
                             message.what = MSG_UPDATE_STATUS_UI;
-                            message.obj = ITEM_CONTROL.REFRESH_MAIN_INFO;
-                            mHandler.sendMessage(message);
-                        }
-                    }
-                } else if (ITEM_CONTROL.CHANGE_RESOLUTION_AUX == control) {
-                    synchronized (mLock) {
-                        mAuxDisplayInfo = getDisplayInfo(1);
-                        if (mAuxDisplayInfo != null) {
-                            DrmDisplaySetting.setDisplayModeTemp(mAuxDisplayInfo, index);
-                            if (USED_OFFON_RESOLUTION) {
-                                sendSwitchDeviceOffOnMsg(control, SWITCH_STATUS_OFF_ON);
-                            } else {
-                                Message message = new Message();
-                                message.what = MSG_SHOW_CONFIRM_DIALOG;
-                                message.obj = control;
-                                mHandler.sendMessageDelayed(message, 300);
-                            }
-                        } else {
-                            Message message = new Message();
-                            message.what = MSG_UPDATE_STATUS_UI;
-                            message.obj = ITEM_CONTROL.REFRESH_AUX_INFO;
+                            message.obj = ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO;
                             mHandler.sendMessage(message);
                         }
                     }
@@ -704,132 +476,83 @@ public class HdmiSettings extends SettingsPreferenceFragment
         mHandler.sendMessageDelayed(msg, delayMillis);
     }
 
-    private void updateMainState(ITEM_CONTROL control) {
+    private void getDisplayStatusInfo() {
         synchronized (mLock) {
             if (mDestory) {
                 return;
             }
-            mMainDisplayInfo = getDisplayInfo(0);
-            if (mMainDisplayInfo != null
-                    && ITEM_CONTROL.SHOW_DISPLAY_ITEM_MAIN == control) {
-                updateMainResolutionValue();
+            for (Map.Entry<Integer, DisplayInfo> entry : mDisplayInfoList.entrySet()) {
+                int display = entry.getKey();
+                int status = DrmDisplaySetting.getCurrentDpyConnState(display);
+                DisplayInfo displayInfo = entry.getValue();
+                displayInfo.setStatus(status);
+                Log.v(TAG, "display " + display + ", status=" + status);
             }
         }
     }
 
-    private void updateMainStateUI(ITEM_CONTROL control) {
-        if (mDestory) {
-            return;
-        }
-        if (mMainDisplayInfo != null) {
-            if (ITEM_CONTROL.SHOW_DISPLAY_ITEM_MAIN == control) {
-                String[] modes = null == mMainDisplayInfo.getOrginModes() ? new String[]{} :
-                        mMainDisplayInfo.getOrginModes();
-                mMainResolution.setEntries(modes);
-                mMainResolution.setEntryValues(modes);
-                mMainResolution.setValue(mMainDisplayInfo.getCurrentResolution());
-            }
-            mMainResolution.setEnabled(true);
-            mMainScale.setEnabled(true);
-        } else {
-            mMainResolution.setEnabled(false);
-            mMainScale.setEnabled(false);
-        }
-        hideWaitingDialog();
-    }
-
-    private void updateAuxState(ITEM_CONTROL control) {
-        if (mDestory) {
-            return;
-        }
+    private void getDisplayResolutionInfo(DisplayInfo displayInfo) {
         synchronized (mLock) {
-            mAuxDisplayInfo = getDisplayInfo(1);
-            if (mAuxDisplayInfo != null
-                    && ITEM_CONTROL.SHOW_DISPLAY_ITEM_AUX == control) {
-                updateAuxResolutionValue();
+            if (mDestory) {
+                return;
+            }
+            if (null != displayInfo
+                    && DPY_STATUS_CONNECTED == displayInfo.getStatus()) {
+                DrmDisplaySetting.updateDisplayModesInfo(displayInfo);
             }
         }
     }
 
-    private void updateAuxStateUI(ITEM_CONTROL control) {
+    private void updateStateUI() {
         if (mDestory) {
             return;
         }
-        if (mAuxDisplayInfo != null) {
-            if (ITEM_CONTROL.SHOW_DISPLAY_ITEM_AUX == control) {
-                String[] modes = null == mAuxDisplayInfo.getOrginModes() ? new String[]{} :
-                        mAuxDisplayInfo.getOrginModes();
-                mAuxResolution.setEntries(modes);
-                mAuxResolution.setEntryValues(modes);
-                mAuxResolution.setValue(mAuxDisplayInfo.getCurrentResolution());
+        for (Map.Entry<Integer, DisplayInfo> entry : mDisplayInfoList.entrySet()) {
+            int display = entry.getKey();
+            DisplayInfo displayInfo = entry.getValue();
+            Preference cate = findPreference(KEY_PRE_CATE + display);
+            if (DPY_STATUS_CONNECTED == displayInfo.getStatus()) {
+                cate.setEnabled(true);
+            } else {
+                cate.setEnabled(false);
             }
-            mAuxResolution.setEnabled(true);
-            mAuxScale.setEnabled(true);
-            mAuxScreenVH.setEnabled(true);
-            mAuxScreenVHList.setEnabled(true);
-        } else {
-            mAuxResolution.setEnabled(false);
-            mAuxScale.setEnabled(false);
-            mAuxScreenVH.setEnabled(false);
-            mAuxScreenVHList.setEnabled(false);
         }
-        hideWaitingDialog();
     }
 
-    protected void showConfirmSetMainModeDialog() {
+    private void showResolutionItemUI(DisplayInfo displayInfo) {
+        String[] modes = null == displayInfo.getOrginModes() ? new String[]{} :
+                displayInfo.getOrginModes();
+        HdmiListPreference resolutionPreference = (HdmiListPreference) findPreference(
+                KEY_PRE_RESOLUTION + displayInfo.getDisplayNo());
+        resolutionPreference.setEntries(modes);
+        resolutionPreference.setEntryValues(modes);
+        resolutionPreference.setValue(displayInfo.getCurrentResolution());
+        resolutionPreference.showClickDialogItem();
+    }
+
+    protected void showConfirmSetModeDialog() {
         //mMainDisplayInfo = getDisplayInfo(0);
-        if (mMainDisplayInfo != null && mResume) {
-            Log.v(TAG, "showConfirmSetMainModeDialog");
-            DialogFragment df = ConfirmSetModeDialogFragment.newInstance(mMainDisplayInfo, new ConfirmSetModeDialogFragment.OnDialogDismissListener() {
+        if (mSelectDisplayInfo != null && mResume) {
+            Log.v(TAG, "showConfirmSetModeDialog");
+            DialogFragment df = ConfirmSetModeDialogFragment.newInstance(mSelectDisplayInfo, new ConfirmSetModeDialogFragment.OnDialogDismissListener() {
                 @Override
                 public void onDismiss(boolean isok) {
-                    Log.i(TAG, "showConfirmSetMainModeDialog->onDismiss->isok:" + isok);
-                    Log.i(TAG, "showConfirmSetMainModeDialog->onDismiss->mOldResolution:" + mOldMainResolution);
+                    Log.i(TAG, "showConfirmSetModeDialog->onDismiss->isok:" + isok);
+                    Log.i(TAG, "showConfirmSetModeDialog->onDismiss->mOldResolution:" + mSelectDisplayInfo.getCurrentResolution());
                     synchronized (mLock) {
-                        DrmDisplaySetting.confirmSaveDisplayMode(mMainDisplayInfo, isok);
+                        DrmDisplaySetting.confirmSaveDisplayMode(mSelectDisplayInfo, isok);
                         if (!isok) {
-                            mMainResolution.setEnabled(false);
-                            mMainScale.setEnabled(false);
+                            Preference cate = findPreference(KEY_PRE_CATE + mSelectDisplayInfo.getDisplayNo());
+                            cate.setEnabled(false);
                             if (USED_OFFON_RESOLUTION) {
                                 showWaitingDialog(R.string.dialog_wait_screen_connect);
-                                sendSwitchDeviceOffOnMsg(ITEM_CONTROL.REFRESH_MAIN_INFO, SWITCH_STATUS_OFF_ON);
+                                sendSwitchDeviceOffOnMsg(ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO, SWITCH_STATUS_OFF_ON);
                             } else {
                                 showWaitingDialog(R.string.dialog_update_resolution);
-                                sendUpdateStateMsg(ITEM_CONTROL.REFRESH_MAIN_INFO, 1000);
+                                sendUpdateStateMsg(ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO, 1000);
                             }
                         } else if (!USED_OFFON_RESOLUTION) {
-                            updateMainStateUI(ITEM_CONTROL.REFRESH_MAIN_INFO);
-                        }
-                    }
-                }
-            });
-            df.show(getFragmentManager(), "ConfirmDialog");
-        }
-    }
-
-    protected void showConfirmSetAuxModeDialog() {
-        //mAuxDisplayInfo = getDisplayInfo(1);
-        if (mAuxDisplayInfo != null && mResume) {
-            Log.v(TAG, "showConfirmSetAuxModeDialog");
-            DialogFragment df = ConfirmSetModeDialogFragment.newInstance(mAuxDisplayInfo, new ConfirmSetModeDialogFragment.OnDialogDismissListener() {
-                @Override
-                public void onDismiss(boolean isok) {
-                    Log.i(TAG, "showConfirmSetAuxModeDialog->onDismiss->isok:" + isok);
-                    Log.i(TAG, "showConfirmSetAuxModeDialog->onDismiss->mOldAuxResolution:" + mOldAuxResolution);
-                    synchronized (mLock) {
-                        DrmDisplaySetting.confirmSaveDisplayMode(mAuxDisplayInfo, isok);
-                        if (!isok) {
-                            mAuxResolution.setEnabled(false);
-                            mAuxScale.setEnabled(true);
-                            if (USED_OFFON_RESOLUTION) {
-                                showWaitingDialog(R.string.dialog_wait_screen_connect);
-                                sendSwitchDeviceOffOnMsg(ITEM_CONTROL.REFRESH_AUX_INFO, SWITCH_STATUS_OFF_ON);//not effect with setprop? so directly write node
-                            } else {
-                                showWaitingDialog(R.string.dialog_update_resolution);
-                                sendUpdateStateMsg(ITEM_CONTROL.REFRESH_AUX_INFO, 1000);
-                            }
-                        } else if (!USED_OFFON_RESOLUTION) {
-                            updateAuxStateUI(ITEM_CONTROL.REFRESH_AUX_INFO);
+                            updateStateUI();
                         }
                     }
                 }
@@ -846,39 +569,31 @@ public class HdmiSettings extends SettingsPreferenceFragment
 
     @Override
     public boolean onPreferenceClick(Preference preference) {
-        if (preference == mMainScale) {
-            Intent screenScaleIntent = new Intent(getActivity(), ScreenScaleActivity.class);
-            mMainDisplayInfo = getDisplayInfo(0);
-            if (mMainDisplayInfo != null) {
-                screenScaleIntent.putExtra(ScreenScaleActivity.EXTRA_DISPLAY_INFO, mMainDisplayInfo);
+        String key = preference.getKey();
+        Log.i(TAG, "onPreferenceClick " + key);
+        if (key.startsWith(KEY_PRE_SCREEN_SCALE)) {
+            int display = Integer.parseInt(key.replace(KEY_PRE_SCREEN_SCALE, ""));
+            int status = DrmDisplaySetting.getCurrentDpyConnState(display);
+            if (DPY_STATUS_CONNECTED == status) {
+                Intent screenScaleIntent = new Intent(getActivity(), ScreenScaleActivity.class);
+                screenScaleIntent.putExtra(ScreenScaleActivity.EXTRA_DISPLAY, display);
                 startActivity(screenScaleIntent);
             } else {
-                mMainResolution.setEnabled(false);
-                mMainScale.setEnabled(false);
+                Preference cate = findPreference(KEY_PRE_CATE + display);
+                cate.setEnabled(false);
             }
-        } else if (preference == mMainResolution) {
-            Log.i(TAG, "onPreferenceClick mMainResolution");
+        } else if (key.startsWith(KEY_PRE_RESOLUTION)) {
+            for (Map.Entry<Integer, DisplayInfo> entry : mDisplayInfoList.entrySet()) {
+                int display = Integer.parseInt(key.replace(KEY_PRE_RESOLUTION, ""));
+                if (display == entry.getKey()) {
+                    mSelectDisplayInfo = entry.getValue();
+                }
+            }
             showWaitingDialog(R.string.dialog_getting_screen_info);
-            sendUpdateStateMsg(ITEM_CONTROL.SHOW_DISPLAY_ITEM_MAIN, 1000);
+            sendUpdateStateMsg(ITEM_CONTROL.SHOW_RESOLUTION_ITEM, 1000);
         } else if (preference == mAuxScreenVHList) {
             String value = SystemProperties.get("persist.sys.rotation.einit", "0");
             mAuxScreenVHList.setValue(value);
-        } else if (preference == mAuxScale) {
-            Intent screenScaleIntent = new Intent(getActivity(), ScreenScaleActivity.class);
-            mAuxDisplayInfo = getDisplayInfo(1);
-            if (mAuxDisplayInfo != null) {
-                screenScaleIntent.putExtra(ScreenScaleActivity.EXTRA_DISPLAY_INFO, mAuxDisplayInfo);
-                startActivity(screenScaleIntent);
-            } else {
-                mAuxResolution.setEnabled(false);
-                mAuxScale.setEnabled(false);
-                mAuxScreenVH.setEnabled(false);
-                mAuxScreenVHList.setEnabled(false);
-            }
-        } else if (preference == mAuxResolution) {
-            Log.i(TAG, "onPreferenceClick mAuxResolution");
-            showWaitingDialog(R.string.dialog_getting_screen_info);
-            sendUpdateStateMsg(ITEM_CONTROL.SHOW_DISPLAY_ITEM_AUX, 1000);
         }
         return true;
     }
@@ -887,52 +602,28 @@ public class HdmiSettings extends SettingsPreferenceFragment
     public boolean onPreferenceChange(Preference preference, Object obj) {
         String key = preference.getKey();
         Log.i(TAG, key + " onPreferenceChange:" + obj);
-        if (preference == mMainResolution) {
-            if (KEY_MAIN_RESOLUTION.equals(key)) {
-                if (obj.equals(mOldMainResolution))
-                    return true;
-                int index = mMainResolution.findIndexOfValue((String) obj);
-                Log.i(TAG, "onMainPreferenceChange: index= " + index);
-                if (-1 == index) {
-                    Log.e(TAG, "onMainPreferenceChange: index=-1 start print");
-                    CharSequence[] temps = mMainResolution.getEntryValues();
-                    if (null == temps) {
-                        for (CharSequence temp : temps) {
-                            Log.i(TAG, "=======" + temp);
-                        }
-                    } else {
-                        Log.e(TAG, "mMainResolution.getEntryValues() is null, but set " + obj);
+        if (key.startsWith(KEY_PRE_RESOLUTION)) {
+            if (null == mSelectDisplayInfo
+                    || obj.equals(mSelectDisplayInfo.getCurrentResolution())) {
+                return true;
+            }
+            HdmiListPreference resolutionPreference = (HdmiListPreference) preference;
+            int index = resolutionPreference.findIndexOfValue((String) obj);
+            Log.i(TAG, "resolutionPreference: index= " + index);
+            if (-1 == index) {
+                Log.e(TAG, "onPreferenceChange: index=-1 start print");
+                CharSequence[] temps = resolutionPreference.getEntryValues();
+                if (null == temps) {
+                    for (CharSequence temp : temps) {
+                        Log.i(TAG, "=======" + temp);
                     }
-                    Log.e(TAG, "onMainPreferenceChange: index=-1 end print");
+                } else {
+                    Log.e(TAG, "mResolution.getEntryValues() is null, but set " + obj);
                 }
-                updateResolution(ITEM_CONTROL.CHANGE_RESOLUTION_MAIN, index);
+                Log.e(TAG, "onPreferenceChange: index=-1 end print");
             }
-        } else if (preference == mAuxResolution) {
-            if (KEY_AUX_RESOLUTION.equals(key)) {
-                if (obj.equals(mOldAuxResolution))
-                    return true;
-                int index = mAuxResolution.findIndexOfValue((String) obj);
-                Log.i(TAG, "onAuxPreferenceChange: index= " + index);
-                updateResolution(ITEM_CONTROL.CHANGE_RESOLUTION_AUX, index);
-            }
-        } else if (KEY_MAIN_SWITCH.equals(key)) {
-            mEnableDisplayListener = false;
-            showWaitingDialog(R.string.dialog_getting_screen_info);
-            if (Boolean.parseBoolean(obj.toString())) {
-                SystemProperties.set(sys_main_state, "on");
-            } else {
-                SystemProperties.set(sys_main_state, "off");
-            }
-            sendUpdateStateMsg(ITEM_CONTROL.REFRESH_MAIN_INFO, 2000);
-        } else if (KEY_AUX_SWITCH.equals(key)) {
-            mEnableDisplayListener = false;
-            showWaitingDialog(R.string.dialog_getting_screen_info);
-            if (Boolean.parseBoolean(obj.toString())) {
-                SystemProperties.set(sys_aux_state, "on");
-            } else {
-                SystemProperties.set(sys_aux_state, "off");
-            }
-            sendUpdateStateMsg(ITEM_CONTROL.REFRESH_AUX_INFO, 2000);
+            preference.getParent().setEnabled(false);
+            updateResolution(ITEM_CONTROL.CHANGE_RESOLUTION, index);
         } else if (preference == mSystemRotation) {
             if (KEY_SYSTEM_ROTATION.equals(key)) {
                 try {
@@ -963,13 +654,13 @@ public class HdmiSettings extends SettingsPreferenceFragment
             } else {
                 SystemProperties.set("persist.sys.rotation.efull", "false");
             }
-            sendSwitchDeviceOffOnMsg(ITEM_CONTROL.REFRESH_AUX_INFO, SWITCH_STATUS_OFF_ON);
+            sendSwitchDeviceOffOnMsg(ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO, SWITCH_STATUS_OFF_ON);
         } else if (preference == mAuxScreenVHList) {
             mEnableDisplayListener = false;
             showWaitingDialog(R.string.dialog_wait_screen_connect);
             SystemProperties.set("persist.sys.rotation.einit", obj.toString());
             //mDisplayManager.forceScheduleTraversalLocked();
-            sendSwitchDeviceOffOnMsg(ITEM_CONTROL.REFRESH_AUX_INFO, SWITCH_STATUS_OFF_ON);
+            sendSwitchDeviceOffOnMsg(ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO, SWITCH_STATUS_OFF_ON);
         }
         return true;
     }
@@ -980,14 +671,8 @@ public class HdmiSettings extends SettingsPreferenceFragment
 
     private void refreshState() {
         Log.v(TAG, "refreshState");
-        if (mShowSettings != ONLY_SHOW_AUX) {
-            showWaitingDialog(R.string.dialog_getting_screen_info);
-            sendUpdateStateMsg(ITEM_CONTROL.REFRESH_MAIN_INFO, 1000);
-        }
-        if (mShowSettings != ONLY_SHOW_MAIN) {
-            showWaitingDialog(R.string.dialog_getting_screen_info);
-            sendUpdateStateMsg(ITEM_CONTROL.REFRESH_AUX_INFO, 1000);
-        }
+        showWaitingDialog(R.string.dialog_getting_screen_info);
+        sendUpdateStateMsg(ITEM_CONTROL.REFRESH_DISPLAY_STATUS_INFO, 1000);
     }
 
     class DisplayListener implements DisplayManager.DisplayListener {
