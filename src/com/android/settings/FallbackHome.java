@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.SystemProperties;
 import android.os.SystemClock;
 import android.os.UserManager;
 import android.provider.Settings;
@@ -46,6 +47,7 @@ public class FallbackHome extends Activity {
 
     private boolean mProvisioned;
     private WallpaperManager mWallManager;
+    private boolean mKIOSK;
 
     private final Runnable mProgressTimeoutRunnable = () -> {
         View v = getLayoutInflater().inflate(
@@ -107,20 +109,25 @@ public class FallbackHome extends Activity {
 
         registerReceiver(mReceiver, new IntentFilter(Intent.ACTION_USER_UNLOCKED));
         maybeFinish();
+        mKIOSK = SystemProperties.getBoolean("persist.kiosk_mode", false);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         if (mProvisioned) {
-            mHandler.postDelayed(mProgressTimeoutRunnable, mProgressTimeout);
+            if (!mKIOSK) {
+                mHandler.postDelayed(mProgressTimeoutRunnable, mProgressTimeout);
+            }
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mHandler.removeCallbacks(mProgressTimeoutRunnable);
+        if (!mKIOSK) {
+            mHandler.removeCallbacks(mProgressTimeoutRunnable);
+        }
     }
 
     protected void onDestroy() {
