@@ -174,46 +174,7 @@ public class MasterClearConfirm extends InstrumentedFragment {
         }
 
         private void performFactoryReset() {
-            final PersistentDataBlockManager pdbManager = (PersistentDataBlockManager)
-                    getActivity().getSystemService(Context.PERSISTENT_DATA_BLOCK_SERVICE);
-
-            if (shouldWipePersistentDataBlock(pdbManager)) {
-
-                new AsyncTask<Void, Void, Void>() {
-                    int mOldOrientation;
-                    ProgressDialog mProgressDialog;
-
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        pdbManager.wipe();
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void aVoid) {
-                        mProgressDialog.hide();
-                        if (getActivity() != null) {
-                            getActivity().setRequestedOrientation(mOldOrientation);
-                            doMasterClear();
-                        }
-                    }
-
-                    @Override
-                    protected void onPreExecute() {
-                        mProgressDialog = getProgressDialog();
-                        mProgressDialog.show();
-
-                        // need to prevent orientation changes as we're about to go into
-                        // a long IO request, so we won't be able to access inflate resources on
-                        // flash
-                        mOldOrientation = getActivity().getRequestedOrientation();
-                        getActivity().setRequestedOrientation(
-                                ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-                    }
-                }.execute();
-            } else {
-                doMasterClear();
-            }
+            doMasterClear();
         }
 
         private ProgressDialog getProgressDialog() {
