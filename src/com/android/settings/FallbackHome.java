@@ -81,7 +81,7 @@ public class FallbackHome extends Activity {
 
         registerReceiver(mReceiver, new IntentFilter(Intent.ACTION_USER_UNLOCKED));
         maybeFinish();
-        mKIOSK = SystemProperties.getBoolean("kiosk_mode", false);
+        mKIOSK = SystemProperties.getBoolean("persist.kiosk_mode", false);
     }
 
     @Override
