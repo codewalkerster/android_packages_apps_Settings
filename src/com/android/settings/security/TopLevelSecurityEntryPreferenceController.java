@@ -19,20 +19,35 @@ package com.android.settings.security;
 import android.content.Context;
 import android.hardware.face.FaceManager;
 import android.hardware.fingerprint.FingerprintManager;
+import android.os.UserHandle;
+import android.os.SystemProperties;
 
+import com.android.internal.widget.LockPatternUtils;
 import com.android.settings.R;
 import com.android.settings.Utils;
 import com.android.settings.core.BasePreferenceController;
+import com.android.settings.overlay.FeatureFactory;
 
 public class TopLevelSecurityEntryPreferenceController extends BasePreferenceController {
 
+    protected final LockPatternUtils mLockPatternUtils;
+    protected final int mUserId = UserHandle.myUserId();
+
     public TopLevelSecurityEntryPreferenceController(Context context, String preferenceKey) {
         super(context, preferenceKey);
+        mLockPatternUtils = FeatureFactory.getFactory(context)
+                .getSecurityFeatureProvider()
+                .getLockPatternUtils(context);
     }
 
     @Override
     public int getAvailabilityStatus() {
-        return AVAILABLE;
+        if (!mLockPatternUtils.isSecure(mUserId)) {
+            return SystemProperties.getBoolean("persist.sys.security.enabled", false)
+                ? AVAILABLE
+                : UNSUPPORTED_ON_DEVICE;
+        } else
+            return AVAILABLE;
     }
 
     @Override
