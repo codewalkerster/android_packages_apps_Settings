@@ -144,6 +144,10 @@ abstract class SaveChosenLockWorkerBase extends Fragment {
                 Toast.makeText(getContext(), R.string.lockpassword_credential_changed,
                         Toast.LENGTH_LONG).show();
             }
+            Toast.makeText(getActivity(),
+                    "DO NOT SWAP THIS MEDIA TO THE OTHER ODROID BOARD.\n" +
+                    "USER DATA WILL BE CORRUPTED.",
+                    Toast.LENGTH_LONG).show();
             finish(resultData.second);
         }
     }
