@@ -34,6 +34,7 @@ import com.android.settings.SettingsDumpService;
 import com.android.settings.Utils;
 import com.android.settings.core.OnActivityResultListener;
 import com.android.settings.dashboard.DashboardFragment;
+import com.android.settings.ethernet.EthernetSettingsPreferenceController;
 import com.android.settings.network.MobilePlanPreferenceController.MobilePlanPreferenceHost;
 import com.android.settings.search.BaseSearchIndexProvider;
 import com.android.settings.wifi.WifiPrimarySwitchPreferenceController;
@@ -123,6 +124,7 @@ public class NetworkDashboardFragment extends DashboardFragment implements
         }
         controllers.add(privateDnsPreferenceController);
         controllers.add(new NetworkProviderCallsSmsController(context, lifecycle, lifecycleOwner));
+        controllers.add(new EthernetSettingsPreferenceController(context, "ethernet_settings"));
 
         // Start SettingsDumpService after the MobileNetworkRepository is created.
         Intent intent = new Intent(context, SettingsDumpService.class);
