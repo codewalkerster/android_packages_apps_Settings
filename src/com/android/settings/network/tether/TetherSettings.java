@@ -129,6 +129,8 @@ public class TetherSettings extends RestrictedSettingsFragment
     @VisibleForTesting
     Preference mDataSaverFooter;
 
+    private String mEthernetRegex;
+
     @VisibleForTesting
     String[] mUsbRegexs;
     @VisibleForTesting
@@ -187,6 +189,8 @@ public class TetherSettings extends RestrictedSettingsFragment
 
         mUsbRegexs = mTm.getTetherableUsbRegexs();
         mBluetoothRegexs = mTm.getTetherableBluetoothRegexs();
+
+	mEthernetRegex = "eth\\d";
 
         final boolean usbAvailable = mUsbRegexs.length != 0;
         final boolean bluetoothAvailable = adapter != null && mBluetoothRegexs.length != 0;
@@ -535,11 +539,11 @@ public class TetherSettings extends RestrictedSettingsFragment
         boolean isTethered = false;
 
         for (String s : available) {
-            if (mAvailableInterfaces.contains(s)) isAvailable = true;
+            if (s.matches(mEthernetRegex)) isAvailable = true;
         }
 
         for (String s : tethered) {
-            if (mAvailableInterfaces.contains(s)) isTethered = true;
+            if (s.matches(mEthernetRegex)) isTethered = true;
         }
 
         if (DEBUG) {
@@ -550,7 +554,7 @@ public class TetherSettings extends RestrictedSettingsFragment
         if (isTethered) {
             mEthernetTether.setEnabled(!mDataSaverEnabled);
             mEthernetTether.setChecked(true);
-        } else if (mAvailableInterfaces.size() > 0) {
+        } else if (mAvailableInterfaces.size() > 0 || (mEm != null)) {
             mEthernetTether.setEnabled(!mDataSaverEnabled);
             mEthernetTether.setChecked(false);
         } else {
