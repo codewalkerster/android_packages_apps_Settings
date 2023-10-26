@@ -60,6 +60,7 @@ import com.android.settings.Utils;
 import com.android.settings.core.FeatureFlags;
 import com.android.settings.datausage.DataSaverBackend;
 import com.android.settings.search.BaseSearchIndexProvider;
+import com.android.settings.utils.ReflectUtils;
 import com.android.settings.wifi.tether.WifiTetherPreferenceController;
 import com.android.settingslib.RestrictedLockUtils;
 import com.android.settingslib.RestrictedSwitchPreference;
@@ -190,11 +191,27 @@ public class TetherSettings extends RestrictedSettingsFragment
         mUsbRegexs = mTm.getTetherableUsbRegexs();
         mBluetoothRegexs = mTm.getTetherableBluetoothRegexs();
 
-	mEthernetRegex = "eth\\d";
+        mEthernetRegex = "eth\\d";
 
         final boolean usbAvailable = mUsbRegexs.length != 0;
         final boolean bluetoothAvailable = adapter != null && mBluetoothRegexs.length != 0;
-        final boolean ethernetAvailable = (mEm != null);
+        boolean hasEthIfaces = false;
+        if (mEm != null) {
+            Object result = ReflectUtils.invokeMethodNoParameter(mEm, "getAvailableInterfaces");
+            if (result != null) {
+                String[] ifaces = (String[]) result;
+                //eth
+                for (int i = 0 ; i < ifaces.length ; i++) {
+                    if (ifaces[i].contains("eth")) {
+                        hasEthIfaces = true;
+                        break;
+                    }
+                }
+            } else {
+                Log.e(TAG, "ReflectUtils EthManager getAvailableInterfaces result == null ! ");
+            }
+        }
+        final boolean ethernetAvailable = hasEthIfaces;
 
         if (!usbAvailable || Utils.isMonkeyRunning()) {
             getPreferenceScreen().removePreference(mUsbTether);
