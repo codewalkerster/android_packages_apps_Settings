@@ -219,7 +219,7 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
 
         if (mEthManager == null) {
             Log.e(TAG, "get ethernet manager failed");
-            Toast.makeText(mContext, R.string.disabled_feature, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, R.string.disabled_ethernet, Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -243,7 +243,7 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
 
         if (mEthInfoList.size() == 0) {
             Log.e(TAG, "get ethernet ifaceName failed");
-            Toast.makeText(mContext, R.string.disabled_feature, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, R.string.disabled_ethernet, Toast.LENGTH_SHORT).show();
             finish();
         } else {
             mEthInfoKeyList = new String[mEthInfoList.size()];

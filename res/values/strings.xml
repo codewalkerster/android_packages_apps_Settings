@@ -10572,6 +10572,8 @@
 
     <!-- Title of a message for an empty state screen. A user will see this message if they try to use a certain feature, but the feature was turned off so it won't slow down their phone. [CHAR LIMIT=NONE] -->
     <string name="disabled_feature">Feature not available</string>
+
+    <string name="disabled_ethernet">Ethernet not connected</string>
     <!-- Part of a message for an empty state screen. A user will see this message if they try to use a certain feature, but the feature was turned off so it won't slow down their phone. [CHAR LIMIT=NONE] -->
     <string name="disabled_feature_reason_slow_down_phone">This feature has been turned off because it slows down your phone</string>
 

@@ -196,21 +196,15 @@ public class TetherSettings extends RestrictedSettingsFragment
         final boolean usbAvailable = mUsbRegexs.length != 0;
         final boolean bluetoothAvailable = adapter != null && mBluetoothRegexs.length != 0;
         boolean hasEthIfaces = false;
+
         if (mEm != null) {
             Object result = ReflectUtils.invokeMethodNoParameter(mEm, "getAvailableInterfaces");
-            if (result != null) {
-                String[] ifaces = (String[]) result;
-                //eth
-                for (int i = 0 ; i < ifaces.length ; i++) {
-                    if (ifaces[i].contains("eth")) {
-                        hasEthIfaces = true;
-                        break;
-                    }
-                }
-            } else {
-                Log.e(TAG, "ReflectUtils EthManager getAvailableInterfaces result == null ! ");
-            }
+            String[] tethered = mTm.getTetheredIfaces();
+            String[] ifaces = (String[]) result;
+            //There are available network ports or network shares available, do not remove mEthernetTether
+            hasEthIfaces = hasEthernetInterface(ifaces) || hasEthernetInterface(tethered);
         }
+
         final boolean ethernetAvailable = hasEthIfaces;
 
         if (!usbAvailable || Utils.isMonkeyRunning()) {
@@ -749,5 +743,16 @@ public class TetherSettings extends RestrictedSettingsFragment
             mAvailableInterfaces.remove(iface);
         }
         updateBluetoothAndEthernetState();
+    }
+
+    private boolean hasEthernetInterface(String[] ifaces) {
+        if (ifaces != null) {
+            for (String iface : ifaces) {
+                if (iface.startsWith("eth")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
