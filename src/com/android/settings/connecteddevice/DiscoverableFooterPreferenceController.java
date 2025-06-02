@@ -24,6 +24,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.text.BidiFormatter;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
 import androidx.preference.PreferenceScreen;
@@ -80,25 +81,34 @@ public class DiscoverableFooterPreferenceController extends BasePreferenceContro
 
     @Override
     public void onStart() {
-        if (mLocalManager == null) {
-            return;
+        try {
+            if (mLocalManager == null) {
+                return;
+            }
+            mContext.registerReceiver(mBluetoothChangedReceiver,
+                    new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+            if (mIsAlwaysDiscoverable) {
+                mAlwaysDiscoverable.start();
+            }
+            updateFooterPreferenceTitle(mBluetoothAdapter.getState());
+        } catch (Exception e) {
+            Log.w("DiscoverableFooterPreferenceController", "B/T is not available");
         }
-        mContext.registerReceiver(mBluetoothChangedReceiver,
-                new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-        if (mIsAlwaysDiscoverable) {
-            mAlwaysDiscoverable.start();
-        }
-        updateFooterPreferenceTitle(mBluetoothAdapter.getState());
+
     }
 
     @Override
     public void onStop() {
-        if (mLocalManager == null) {
-            return;
-        }
-        mContext.unregisterReceiver(mBluetoothChangedReceiver);
-        if (mIsAlwaysDiscoverable) {
-            mAlwaysDiscoverable.stop();
+        try {
+            if (mLocalManager == null) {
+                return;
+            }
+            mContext.unregisterReceiver(mBluetoothChangedReceiver);
+            if (mIsAlwaysDiscoverable) {
+                mAlwaysDiscoverable.stop();
+            }
+        } catch (Exception e) {
+            Log.w("DiscoverableFooterPreferenceController", "B/T is not available");
         }
     }
 
