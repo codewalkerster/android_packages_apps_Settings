@@ -27,6 +27,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.PreferenceScreen;
+import android.util.Log;
 
 import com.android.settings.R;
 import com.android.settings.accessibility.HearingAidUtils;
@@ -67,23 +68,31 @@ public class AvailableMediaDeviceGroupController extends BasePreferenceControlle
 
     @Override
     public void onStart() {
-        if (mLocalBluetoothManager == null) {
-            Log.e(TAG, "onStart() Bluetooth is not supported on this device");
-            return;
+        try {
+            if (mLocalBluetoothManager == null) {
+                Log.e(TAG, "onStart() Bluetooth is not supported on this device");
+                return;
+            }
+            mBluetoothDeviceUpdater.registerCallback();
+            mLocalBluetoothManager.getEventManager().registerCallback(this);
+            mBluetoothDeviceUpdater.refreshPreference();
+        } catch (Exception e) {
+            Log.w("AvailableMediaDeviceGroupController", "B/T is not available");
         }
-        mBluetoothDeviceUpdater.registerCallback();
-        mLocalBluetoothManager.getEventManager().registerCallback(this);
-        mBluetoothDeviceUpdater.refreshPreference();
     }
 
     @Override
     public void onStop() {
-        if (mLocalBluetoothManager == null) {
-            Log.e(TAG, "onStop() Bluetooth is not supported on this device");
-            return;
+        try {
+            if (mLocalBluetoothManager == null) {
+                Log.e(TAG, "onStop() Bluetooth is not supported on this device");
+                return;
+            }
+            mBluetoothDeviceUpdater.unregisterCallback();
+            mLocalBluetoothManager.getEventManager().unregisterCallback(this);
+        } catch (Exception e) {
+            Log.w("AvailableMediaDeviceGroupController", "B/T is not available");
         }
-        mBluetoothDeviceUpdater.unregisterCallback();
-        mLocalBluetoothManager.getEventManager().unregisterCallback(this);
     }
 
     @Override

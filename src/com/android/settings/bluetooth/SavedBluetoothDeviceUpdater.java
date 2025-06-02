@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.VisibleForTesting;
 import androidx.preference.Preference;
@@ -57,20 +58,26 @@ public class SavedBluetoothDeviceUpdater extends BluetoothDeviceUpdater
 
     @Override
     public void forceUpdate() {
-        if (mBluetoothAdapter.isEnabled()) {
-            final CachedBluetoothDeviceManager cachedManager =
-                    mLocalManager.getCachedDeviceManager();
-            final List<BluetoothDevice> bluetoothDevices =
-                    mBluetoothAdapter.getMostRecentlyConnectedDevices();
-            removePreferenceIfNecessary(bluetoothDevices, cachedManager);
-            for (BluetoothDevice device : bluetoothDevices) {
-                final CachedBluetoothDevice cachedDevice = cachedManager.findDevice(device);
-                if (cachedDevice != null && !cachedManager.isSubDevice(device)) {
-                    update(cachedDevice);
+        try {
+            if (mBluetoothAdapter.isEnabled()) {
+                final CachedBluetoothDeviceManager cachedManager =
+                        mLocalManager.getCachedDeviceManager();
+                final List<BluetoothDevice> bluetoothDevices =
+                        mBluetoothAdapter.getMostRecentlyConnectedDevices();
+                removePreferenceIfNecessary(bluetoothDevices, cachedManager);
+                for (BluetoothDevice device : bluetoothDevices) {
+                    final CachedBluetoothDevice cachedDevice = cachedManager.findDevice(device);
+                    if (cachedDevice != null && !cachedManager.isSubDevice(device)) {
+                        update(cachedDevice);
+                    }
                 }
+            } else {
+                removeAllDevicesFromPreference();
             }
-        } else {
-            removeAllDevicesFromPreference();
+        } catch (Exception e) {
+            Toast.makeText(mPrefContext,
+                    "Bluetooth Service is disabled",
+                    Toast.LENGTH_LONG).show();
         }
     }
 

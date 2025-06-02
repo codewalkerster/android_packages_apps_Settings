@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.VisibleForTesting;
 import androidx.preference.Preference;
@@ -103,13 +104,19 @@ public abstract class BluetoothDeviceUpdater implements BluetoothCallback,
      * Unregister the bluetooth event callback
      */
     public void unregisterCallback() {
-        if (mLocalManager == null) {
-            Log.e(getLogTag(), "unregisterCallback() Bluetooth is not supported on this device");
-            return;
+        try {
+            if (mLocalManager == null) {
+                Log.e(getLogTag(), "unregisterCallback() Bluetooth is not supported on this device");
+                return;
+            }
+            mLocalManager.setForegroundActivity(null);
+            mLocalManager.getEventManager().unregisterCallback(this);
+            mLocalManager.getProfileManager().removeServiceListener(this);
+        } catch (Exception e) {
+            Toast.makeText(mPrefContext,
+                    "Bluetooth Service is disabled",
+                    Toast.LENGTH_LONG).show();
         }
-        mLocalManager.setForegroundActivity(null);
-        mLocalManager.getEventManager().unregisterCallback(this);
-        mLocalManager.getProfileManager().removeServiceListener(this);
     }
 
     /**
