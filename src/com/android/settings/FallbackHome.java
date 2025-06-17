@@ -120,13 +120,6 @@ public class FallbackHome extends Activity {
                 mHandler.postDelayed(mProgressTimeoutRunnable, mProgressTimeout);
             }
         }
-        mHandler.sendEmptyMessageDelayed(0, 500);
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                reStartActivity();
-            }
-        }, 60000);
     }
 
     @Override
@@ -151,13 +144,6 @@ public class FallbackHome extends Activity {
             maybeFinish();
         }
     };
-
-    private void reStartActivity() {
-        Log.e(TAG, "timeout reStartActivity");
-        Intent intent = getIntent();
-        finish();
-        startActivity(intent);
-    }
 
     private void loadWallpaperColors(int flags) {
         final AsyncTask loadWallpaperColorsTask = new AsyncTask<Object, Void, Integer>() {
