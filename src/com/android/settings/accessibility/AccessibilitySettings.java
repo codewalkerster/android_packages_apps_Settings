@@ -25,6 +25,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.UserHandle;
+import android.os.SystemProperties;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.ArrayMap;
@@ -188,8 +189,10 @@ public class AccessibilitySettings extends DashboardFragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        use(AccessibilityHearingAidPreferenceController.class)
-                .setFragmentManager(getFragmentManager());
+        if ((SystemProperties.get("persist.bt.service.down")).equals("false")) {
+            use(AccessibilityHearingAidPreferenceController.class)
+                    .setFragmentManager(getFragmentManager());
+        }
     }
 
     @Override
