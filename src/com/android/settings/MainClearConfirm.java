@@ -87,8 +87,11 @@ public class MainClearConfirm extends InstrumentedFragment {
             }
 
             // pre-flight check hardware support PersistentDataBlockManager
-            if (SystemProperties.get(PERSISTENT_DATA_BLOCK_PROP).equals("")) {
-                return;
+            //ODROID
+            if (!SystemProperties.get("ro.hardware").equals("odroid")) {
+                if (SystemProperties.get(PERSISTENT_DATA_BLOCK_PROP).equals("")) {
+                    return;
+                }
             }
 
             final PersistentDataBlockManager pdbManager = (PersistentDataBlockManager)
