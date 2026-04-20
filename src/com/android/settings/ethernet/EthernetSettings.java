@@ -47,9 +47,11 @@ import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.lang.Integer;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.Inet4Address;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import android.preference.Preference.OnPreferenceChangeListener;
@@ -100,6 +102,29 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
     private static final int MSG_GET_ETHERNET_STATE = 0;
     private HashMap<String, EthInfo> mEthInfoList = new HashMap<String, EthInfo>();
     private String[] mEthInfoKeyList = null;
+
+    public String getEthernetMacAddress() {
+        try {
+            List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface nif : interfaces) {
+                // Check specifically for common ethernet interface names
+                if (nif.getName().toLowerCase().contains("eth")) {
+                    byte[] mac = nif.getHardwareAddress();
+                    if (mac == null) return null;
+
+                    StringBuilder sb = new StringBuilder();
+                    for (byte b : mac) {
+                        sb.append(String.format("%02X:", b));
+                    }
+                    if (sb.length() > 0) sb.deleteCharAt(sb.length() - 1);
+                    return sb.toString();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     private Handler mHandler = new Handler() {
         @Override
@@ -271,6 +296,12 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
             ethernetNetInterface.setTitle(key);
 
             // Create Ethernet IP Address Preference
+            Preference ethernetHWAddrPref = new Preference(mContext);
+            ethernetHWAddrPref.setKey(prefix + KEY_ETH_HW_ADDRESS);
+            ethernetHWAddrPref.setSummary(R.string.device_info_default);
+            ethernetHWAddrPref.setTitle(R.string.ethernet_hw_addr);
+
+            // Create Ethernet IP Address Preference
             Preference ethernetIpAddrPref = new Preference(mContext);
             ethernetIpAddrPref.setKey(prefix + KEY_ETH_IP_ADDRESS);
             ethernetIpAddrPref.setSummary(R.string.device_info_default);
@@ -310,6 +341,7 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
             ethernetModePref.setOnPreferenceChangeListener(this);
 
             preferenceScreen.addPreference(ethernetNetInterface);
+            ethernetNetInterface.addPreference(ethernetHWAddrPref);
             ethernetNetInterface.addPreference(ethernetIpAddrPref);
             ethernetNetInterface.addPreference(ethernetNetmaskPref);
             ethernetNetInterface.addPreference(ethernetGatewayPref);
@@ -379,6 +411,7 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
             if (info != null) {
                 //setStringSummary(prefix + KEY_NET_INTERFACE, key);
                 setStringSummary(prefix + KEY_ETH_IP_ADDRESS, info.getIpAddress());
+                setStringSummary(prefix + KEY_ETH_HW_ADDRESS, getEthernetMacAddress());
                 setStringSummary(prefix + KEY_ETH_NET_MASK, info.getNetmask());
                 setStringSummary(prefix + KEY_ETH_GATEWAY, info.getGateway());
                 log("hjf  info.getGateway() = " + info.getGateway());
